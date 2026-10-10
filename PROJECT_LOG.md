@@ -1,439 +1,306 @@
 # Recall — Project Log
 
-This document records the development history of Recall, including implementation milestones, architectural decisions, validation results, and known limitations.
+## 1. Project Overview
 
-Unlike the README, which describes the current state of the project, this log preserves the progression of the implementation over time.
+Recall is a local AI-powered knowledge retrieval assistant designed to help developers retrieve information from their technical documentation.
 
-Dates and commit references are taken from the Git history where available. Validation results are recorded only when they have been observed.
-
----
-
-## Project Overview
-
-**Project name:** Recall
-**Repository:** https://github.com/clement-welsch/Recall
-**Python package:** `devassistant`
-**Initial development:** September 24, 2026
-**Current documented state:** October 9, 2026
-
-Recall is a local AI-powered knowledge retrieval assistant for developers. It combines semantic search with Retrieval-Augmented Generation (RAG) to retrieve relevant passages from Markdown documentation and generate answers using a locally hosted language model.
-
-The project uses LM Studio's OpenAI-compatible API for both text embeddings and language generation.
+The project uses Retrieval-Augmented Generation (RAG) to retrieve relevant Markdown content and provide context to a local language model.
 
 ### Current technology stack
 
-* Python 3.12+
-* LM Studio
-* Gemma 4 E4B for text generation
-* Nomic Embed Text v1.5 for embeddings
-* OpenAI Python client for API communication
-* NumPy for numerical operations
-* pytest for automated testing
+* **Language:** Python 3.12+
+* **LLM runtime:** LM Studio
+* **Generation model:** Gemma 4 E4B
+* **Embedding model:** Nomic Embed Text v1.5
+* **API client:** OpenAI-compatible Python client
+* **Numerical operations:** NumPy
+* **Testing:** pytest
+* **Version control:** Git and GitHub
+
+The application is designed to run locally, using LM Studio for embedding generation and answer generation.
 
 ---
 
-## September 24, 2026 — Initial Repository Setup
+## 2. Development History
 
-**Objective:** Establish the initial project repository.
+### September 24, 2026 — Project Initialization
 
-### Implementation
+* Created the Recall repository.
+* Established the initial project structure and development workflow.
 
-* Created the Git repository.
-* Started the initial Python project structure.
-* Added the first Python package initialization files.
+### September 28, 2026 — Python Package and Embeddings
 
-### Milestones
+* Created the Python package structure.
+* Integrated the LM Studio embedding endpoint.
+* Implemented the initial embedding functionality.
 
-* `05252e1` — Initial commit.
-* `4771d54` — Python initialization.
+### September 29, 2026 — Similarity Search and RAG
 
-### Outcome
-
-The repository was initialized and ready for the first implementation work.
-
----
-
-## September 28, 2026 — Python Package and Embeddings
-
-**Objective:** Establish a reusable Python package and implement communication with the local embedding model.
-
-### Implementation
-
-* Reworked the initial project structure.
-* Started and completed the embedding feature.
-* Introduced the `devassistant` package structure.
-* Configured the package so that it could be installed and imported by the test suite.
-* Updated the README to reflect the implementation.
-
-### Testing
-
-* Introduced pytest-based tests.
-* Tested embedding and language-model communication.
-* Investigated behavior when LM Studio was disconnected.
-
-### Milestones
-
-* `eaa7e69` — Project rework.
-* `ff2dd77` — Started embedding implementation.
-* `eedc15f` — Completed embedding feature.
-* `95f724a` — Created an initial pytest test.
-* `5ee7f5c` — Made the package visible to pytest.
-* `a1259f0` — Added pytest.
-* `1ae3ec3` — Merged pull request #2 for the embedding feature.
-
-### Outcome
-
-The project gained its first reusable AI integration component and an initial automated testing setup.
-
----
-
-## September 29, 2026 — Embedding Tests and Similarity Search
-
-**Objective:** Build the retrieval foundation required for a RAG pipeline.
-
-### Implementation
-
-* Corrected embedding and language-model tests.
-* Added tests that could run without a live language-model connection.
-* Implemented cosine-similarity-based document comparison.
-* Ranked documents according to their similarity to a question.
-* Added support for retrieving a configurable number of results through `top_k`.
-
-### Testing
-
-Tests were developed around the individual components rather than relying exclusively on live model calls.
-
-This made it possible to validate parts of the retrieval logic independently of LM Studio.
-
-### Milestones
-
-* `2ca0ed2` — Created tests that do not require LM Studio.
-* `9273d7b` — Corrected embedding and language-model tests.
-* `74b112c` — Added initial similarity tests.
-* `e72192b` — Tested similarity search.
-* `d94e075` — Returned the three most similar documents.
-* `1cdf8d8` — Introduced the `top_k` parameter.
-* `6fad598` — Merged pull request #3 for similarity search.
-
-### Outcome
-
-Recall could compare document embeddings with a question embedding, rank the results, and return the most relevant candidates.
-
----
-
-## September 29, 2026 — Initial RAG Pipeline
-
-**Objective:** Combine document retrieval with language-model generation.
-
-### Implementation
-
-* Introduced the initial RAG pipeline.
-* Integrated semantic retrieval with response generation.
-* Added tests for the RAG components.
-* Separated prompt construction into a dedicated module.
-* Preserved document metadata during retrieval.
-* Integrated document loading into the RAG workflow.
-
-### Architectural progression
-
-The initial pipeline evolved toward the following structure:
-
-1. Load documents.
-2. Generate document embeddings.
-3. Embed the user's question.
-4. Rank documents by cosine similarity.
-5. Select the most relevant results.
-6. Construct a prompt from the retrieved information and the question.
-7. Send the prompt to the language model.
-8. Return the generated answer.
-
-### Milestones
-
-* `3d81a4c` — Added RAG and RAG tests.
-* `79544f6` — Merged pull request #4 for RAG integration.
-* `81c9936` — Integrated document loading into the RAG workflow.
-* `27131fd` — Merged pull request #5 for document loading.
-* `44abc64` — Extracted RAG prompt construction.
-* `2bd708c` — Merged pull request #9 for prompt construction.
-* `70e5605` — Preserved document metadata during retrieval.
-* `6a20ddb` — Merged pull request #10 for document metadata.
-
-### Outcome
-
-Recall moved from isolated embedding and similarity components to an integrated retrieval-and-generation pipeline.
-
----
-
-## September 29, 2026 — Markdown Chunking
-
-**Objective:** Support documents that are too long to retrieve and process effectively as single units.
-
-### Implementation
-
+* Implemented cosine similarity calculations.
+* Added tests for similarity calculations and embeddings.
+* Implemented the initial RAG pipeline.
 * Added document chunking.
-* Updated the document loader to return chunks rather than whole Markdown files.
-* Integrated chunking into the RAG pipeline.
-* Updated the README to document chunking behavior.
+* Introduced configurable retrieval parameters.
+* Refactored prompt construction.
 
-### Current chunking strategy
+### October 7, 2026 — Source Tracking and Context Construction
 
-Recall uses fixed-size word windows with overlapping content between consecutive chunks.
+* Added source tracking to retrieved document chunks.
+* Implemented context construction for the RAG pipeline.
+* Updated the answer-generation workflow to return the generated answer and the list of source documents.
+* Added tests covering source tracking and context construction.
 
-The current defaults are:
+### October 7, 2026 — Search Threshold and Scoring Validation
 
-* Chunk size: 60 words.
-* Overlap: 12 words.
+* Introduced a configurable `score_threshold` parameter for similarity search.
+* Defined cosine similarity as the basis for retrieval scoring.
+* Added validation for search parameters.
+* Stabilized score ordering and retrieval behavior.
+* Added tests for parameter validation and scoring edge cases.
 
-The overlap preserves some context across chunk boundaries.
+The default threshold is `0.0`. It is a cosine similarity threshold, not a calibrated probability of relevance.
 
-### Milestones
+PR #18: `Validate search parameters and stabilize scoring`.
 
-* `fab7998` — Split Markdown files into chunks.
-* `a86e265` — Updated `load_documents()` to use chunks.
-* `1c0a8fa` — Merged pull request #6 for document chunking.
-* `70e7e17` — Integrated chunking into RAG.
-* `1321d6c` — Merged pull request #7 for RAG chunk integration.
+### October 10, 2026 — Search Score Contract
 
-### Outcome
+Updated the search result contract to expose individual chunk scores and aggregated source scores.
 
-The retrieval pipeline could operate on smaller document passages instead of treating every Markdown file as a single retrieval unit.
+Each search result contains:
 
----
+* `chunk_score`: cosine similarity between the chunk embedding and the question embedding.
+* `source_score`: the maximum score among the retained chunks belonging to that source.
+* `chunk`: the original chunk and its associated metadata.
 
-## September 29, 2026 — Configurable Retrieval and Prompt Refactoring
+Source scores are aggregated using the maximum chunk score, rather than an average.
 
-**Objective:** Make retrieval behavior configurable and improve separation of responsibilities.
+Sources are ordered by descending score. When scores are equal, source names provide a deterministic secondary ordering.
 
-### Implementation
+The `top_k` parameter selects the number of sources, not the number of individual chunks. All retained chunks belonging to the selected sources are returned.
 
-* Added configurable retrieval parameters.
-* Introduced `top_k` as a RAG configuration option.
-* Extracted prompt construction into a dedicated module.
-* Preserved document metadata through retrieval.
+The score threshold is applied to individual chunks before source aggregation.
 
-### Milestones
+PR #19: `Expose chunk and source scores in search results`.
 
-* `bd7082f` — Made RAG retrieval configurable.
-* `58b34ad` — Merged pull request #8 for configurable `top_k`.
-* `44abc64` — Extracted prompt construction.
+### October 10, 2026 — Embedding Cache
 
-### Outcome
+Implemented an in-memory Least Recently Used (LRU) cache for embedding results.
 
-Retrieval behavior became configurable without requiring changes to the internal search implementation.
+The cache:
 
-Prompt construction also became a separate responsibility, making it easier to test and evolve independently.
+* Has a maximum capacity of 1,024 entries.
+* Uses the embedding model and input text as its cache key.
+* Reuses embeddings for previously processed texts.
+* Deduplicates repeated texts within a single call.
+* Sends missing unique texts to the embedding endpoint in batches.
+* Preserves the original input order and duplicate entries in the returned results.
+* Evicts the least recently used entries when the cache reaches capacity.
+* Provides `clear_embedding_cache()` to clear the cache.
 
----
+The cache reduces redundant embedding API calls for identical inputs during the current process lifetime.
 
-## October 7, 2026 — Source Tracking and Context Construction
+It does not provide persistent storage of embeddings across application restarts.
 
-**Objective:** Make the origin of retrieved information visible in RAG results.
-
-### Implementation
-
-* Included document source information in the RAG context.
-* Exposed source filenames in the final RAG result.
-* Removed duplicate source filenames from the returned source list.
-* Extracted context construction into a dedicated function.
-
-### Current result structure
-
-The `get_answer()` function returns a dictionary containing:
-
-* `answer`: the generated response.
-* `sources`: a list of unique source filenames associated with the retrieved passages.
-
-The source list provides traceability to the files used to construct the context. It does not independently guarantee that every statement in the generated answer is supported by those files.
-
-### Milestones
-
-* `faf9503` — Included document sources in RAG context.
-* `eebdcc6` — Merged pull request #11 for source-aware context.
-* `4b6ac48` — Exposed RAG sources in the answer.
-* `62e8635` — Merged pull request #12 for RAG sources.
-* `0f0490b` — Deduplicated RAG sources.
-* `757eeb8` — Merged pull request #13 for unique sources.
-* `5ee3a59` — Extracted the RAG context builder.
-* `f5ab1f5` — Merged pull request #14 for context construction.
-
-### Outcome
-
-The RAG pipeline gained explicit source tracking and a dedicated context-building function.
+PR #20: `Cache document embeddings with LRU eviction`.
 
 ---
 
-## October 7, 2026 — Similarity Score Threshold
+## 3. Current Architecture
 
-**Objective:** Allow retrieval results to be filtered according to a minimum similarity score.
-
-### Implementation
-
-* Added the `score_threshold` parameter to semantic search.
-* Added the same configuration option to the RAG entry point.
-* Filtered out retrieval results whose cosine similarity score falls below the configured threshold.
-
-### Current behavior
-
-The default threshold is `0.0`.
-
-The search implementation ranks results by descending cosine similarity, filters out results below the threshold, and returns up to `top_k` remaining results.
-
-The threshold must be tuned empirically for the selected embedding model, document collection, and application. A cosine similarity score is not a calibrated probability of relevance.
-
-### Milestones
-
-* `2aebcf7` — Added the RAG similarity score threshold.
-* `ad8a91d` — Merged pull request #15 for the score threshold.
-
-### Outcome
-
-Recall gained a retrieval control that can exclude low-scoring results before context construction.
+| Module               | Responsibility                                                                         |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| `config.py`          | Application configuration                                                              |
+| `lmstudio_client.py` | Communication with LM Studio and answer generation                                     |
+| `embeddings.py`      | Embedding generation and in-memory LRU caching                                         |
+| `similarity.py`      | Cosine similarity calculations                                                         |
+| `search.py`          | Chunk scoring, threshold filtering, source score aggregation, and source selection     |
+| `chunking.py`        | Splitting document content into chunks                                                 |
+| `document_loader.py` | Loading documents for retrieval                                                        |
+| `prompt.py`          | Constructing prompts for answer generation                                             |
+| `rag.py`             | Orchestrating document loading, retrieval, context construction, and answer generation |
 
 ---
 
-## October 9, 2026 — Environment Validation and Dependency Management
+## 4. Current Search and RAG Contracts
 
-**Objective:** Validate the development environment and make dependency installation more explicit.
+### 4.1 Search
 
-### Environment
+The `search()` function accepts:
 
-The project was validated in a Windows development environment using:
+* `documents`
+* `question`
+* `top_k`, defaulting to `3`
+* `score_threshold`, defaulting to `0.0`
 
-* Python 3.12.10.
-* A project-specific virtual environment.
-* LM Studio running locally.
-* Gemma 4 E4B for generation.
-* Nomic Embed Text v1.5 for embeddings.
+Validation rules:
 
-The configured embedding model returns 768-dimensional vectors.
+* `top_k` must be greater than or equal to zero.
+* `score_threshold` must be finite and between `-1.0` and `1.0`.
+* If `top_k` is zero or the document list is empty, the function returns an empty list.
 
-### Dependency management
+For non-empty searches, the function computes embeddings, scores chunks, applies the threshold, aggregates scores by source, selects the best sources, and returns their retained chunks.
 
-The project uses the following direct runtime dependencies:
+Each result has the following structure:
 
-* `openai==3.19.2`
-* `numpy==2.5.3`
+```python
+{
+    "chunk_score": float,
+    "source_score": float,
+    "chunk": dict,
+}
+```
 
-The development dependency file, `requirements-dev.txt`, includes the runtime requirements and:
+The exact numerical values depend on the embedding model and the cosine similarity calculation.
 
-* `pytest==9.1.1`
+### 4.2 Source Score Aggregation
 
-The existing `pyproject.toml` defines the Python package metadata but does not yet declare runtime dependencies. Consequently, installing the project with `pip install -e .` alone does not install the runtime dependencies.
+For each source, `aggregate_document_scores()` retains the maximum chunk score.
 
-### Validation
+Sources are sorted by:
 
-The following checks were completed:
+1. Descending score.
+2. Ascending source name when scores are equal.
 
-* Installed dependencies through `requirements-dev.txt`.
-* Checked installed package dependencies with `python -m pip check`.
-* Executed the full test suite with `python -m pytest -v`.
-* Confirmed that all **48 tests passed**.
-* Tested embedding generation against the configured LM Studio model.
-* Tested language-model generation against the configured LM Studio model.
-* Executed the RAG integration test against the running local models.
+The source score represents the strongest matching chunk from that source. It is not an average score or a calibrated confidence measure.
 
-The RAG integration test passed independently, and the full suite passed after the dependency files were updated.
+### 4.3 RAG Answer Generation
 
-### Outcome
+The `get_answer()` function:
 
-The local development environment and current automated test suite were validated.
+1. Loads documents from the specified directory.
+2. Splits documents into chunks using the configured chunk size and overlap.
+3. Retrieves relevant chunks using `search()`.
+4. Collects unique source names.
+5. Builds the context from the retained chunks.
+6. Constructs the prompt.
+7. Sends the prompt to LM Studio.
+8. Returns the generated answer and source names.
 
-These results establish that the tested execution paths work in the current environment. They do not establish retrieval quality across large corpora or guarantee that generated answers are factually correct.
+The current return contract is:
 
----
+```python
+{
+    "answer": response,
+    "sources": sources,
+}
+```
 
-## Current Architecture
+**Important distinction:** chunk and source scores are available from `search()`, but `get_answer()` does not currently expose these scores in its returned dictionary.
 
-The current implementation is organized into the following modules:
-
-| Module               | Responsibility                                                  |
-| -------------------- | --------------------------------------------------------------- |
-| `config.py`          | Local model and API configuration                               |
-| `lmstudio_client.py` | Communication with the language model                           |
-| `embeddings.py`      | Generation of text embeddings                                   |
-| `similarity.py`      | Cosine similarity calculation                                   |
-| `search.py`          | Semantic ranking, `top_k`, and score filtering                  |
-| `chunking.py`        | Fixed-size word chunking with overlap                           |
-| `document_loader.py` | Loading and chunking Markdown documents                         |
-| `prompt.py`          | Prompt construction                                             |
-| `rag.py`             | Coordination of retrieval, context construction, and generation |
-
-The Python package remains named `devassistant`, although the repository and product are now named Recall.
-
----
-
-## Known Limitations
-
-The following limitations are identified from the current implementation.
-
-### 1. No persistent embedding index
-
-Document embeddings are recomputed during each search.
-
-This is simple for a small corpus but can become expensive as the document collection grows.
-
-### 2. Basic chunking strategy
-
-Chunking is based on word counts rather than Markdown structure, semantic boundaries, or programming-language syntax.
-
-Headings, code blocks, and related passages can therefore be separated across chunks.
-
-### 3. Minimal prompt constraints
-
-The current prompt combines the retrieved context and the user's question.
-
-It does not yet provide explicit, robust instructions requiring every answer to be grounded in the retrieved context or defining how to handle insufficient evidence.
-
-### 4. Limited retrieval evaluation
-
-Automated tests validate individual components and execution paths, but no systematic retrieval benchmark has been established.
-
-Retrieval relevance, threshold selection, answer faithfulness, and performance on larger corpora still require evaluation.
-
-### 5. Markdown-only document ingestion
-
-The document loader currently supports Markdown files.
-
-Other formats would require additional ingestion and text-extraction logic.
-
-### 6. Dependency declaration in package metadata
-
-Runtime dependencies are currently managed through requirements files rather than being declared in `pyproject.toml`.
-
-The package installation workflow can be improved so that installing the package automatically installs its runtime dependencies.
+The source list contains unique source names, not detailed source metadata or score information.
 
 ---
 
-## Potential Next Steps
+## 5. Current Configuration and Dependencies
 
-The following items are candidates for future work. They are not yet considered implemented features.
+The development environment was recorded as:
 
-* Add explicit grounding instructions to the RAG prompt.
-* Test how the system behaves when the retrieved context does not contain the answer.
-* Build a retrieval evaluation dataset and measure retrieval quality.
-* Evaluate different chunk sizes and overlap settings.
-* Investigate persistent embeddings and vector indexing.
-* Measure search latency and memory consumption on larger document collections.
-* Improve chunking for technical documentation and source code.
-* Consider support for additional document formats.
-* Declare runtime dependencies in `pyproject.toml`.
-* Improve error handling for unavailable models and API failures.
+* Python `3.12.10`
+* OpenAI-compatible Python client `3.19.2`
+* NumPy `2.5.3`
+* pytest `9.1.1`
 
-Future work should be prioritized based on measured limitations rather than assumed benefits.
+These versions reflect the environment recorded during development and are not a guarantee that every environment uses the same versions.
+
+The project uses LM Studio through its OpenAI-compatible local API.
+
+The embedding and generation models are configured separately.
+
+**Known dependency-management limitation:** runtime dependencies were not yet fully declared in `pyproject.toml` in the last documented environment review. This should be checked before considering dependency management complete.
 
 ---
 
-## Logging Policy
+## 6. Testing Status
 
-This file is intended to remain a chronological development log.
+The project has tests covering:
 
-When recording future work:
+* Embedding generation.
+* Embedding cache reuse.
+* Repeated input deduplication.
+* Batched embedding requests.
+* LRU eviction.
+* Similarity calculations.
+* Search parameter validation.
+* Search scoring and ordering.
+* Source score aggregation.
+* RAG behavior.
+* Source tracking and context construction.
 
-1. Add a dated entry after a meaningful implementation milestone.
-2. Record the objective and the changes actually made.
-3. Include relevant commit or pull request references when available.
-4. Record test results only after executing the tests.
-5. Distinguish implemented functionality from planned improvements.
-6. Update the known limitations when a limitation is resolved or a new one is identified.
+The user confirmed that the test suite passed on October 10, 2026, after the recent search scoring and embedding cache changes.
 
-The README describes the current project. This file explains how the project reached that state.
+This confirms that the current test suite passes; it does not establish complete coverage of all possible inputs or production workloads.
+
+---
+
+## 7. Known Limitations
+
+The following limitations remain relevant to the current implementation.
+
+### Retrieval and indexing
+
+* No persistent embedding index has been implemented.
+* The in-memory embedding cache is lost when the process terminates.
+* The cache avoids repeated API calls for identical inputs, but does not replace a persistent document index.
+* The chunking strategy is basic and based on word counts.
+* The documented default chunk size is 60 words, with an overlap of 12 words.
+* Retrieval quality has not yet been established through a comprehensive evaluation dataset.
+* The cosine similarity threshold is configurable but is not calibrated as a probability of relevance.
+
+### Source scoring
+
+* A source score is defined as the maximum retained chunk score.
+* This score does not measure the overall quality or completeness of a source.
+* Search results expose scores, but the RAG response currently returns only the answer and unique source names.
+
+### Generation and grounding
+
+* Prompt constraints remain relatively limited.
+* The system does not yet have a comprehensive evaluation of factual grounding or unsupported answers.
+* Behavior when no relevant context is found requires further evaluation.
+
+### Input formats
+
+* Document ingestion is currently focused on Markdown.
+* Support for additional document formats has not been established as implemented.
+
+### Error handling and configuration
+
+* Error handling and configuration robustness may require further improvement.
+* Runtime dependency declarations should be verified and completed in `pyproject.toml`.
+
+---
+
+## 8. Potential Next Steps
+
+The following items are candidates for future work, not completed features.
+
+1. Improve prompt instructions to constrain answers to retrieved evidence.
+2. Evaluate behavior when no relevant context is found.
+3. Create a retrieval evaluation dataset with representative developer questions.
+4. Measure retrieval quality and tune the chunking strategy.
+5. Implement a persistent embedding index.
+6. Measure embedding latency, search latency, and memory consumption.
+7. Improve document chunking beyond fixed word counts.
+8. Consider ingestion of additional document formats.
+9. Complete runtime dependency declarations in `pyproject.toml`.
+10. Improve error handling and configuration validation.
+11. Evaluate whether exposing source and chunk scores through the RAG response would be useful to downstream consumers.
+
+Future work should be prioritized based on measurable improvements to retrieval quality, reliability, usability, or performance.
+
+---
+
+## 9. Project Log Maintenance Policy
+
+This file records the development history and the state of the implementation.
+
+When updating this log:
+
+* Add a dated entry for significant completed milestones.
+* Record the relevant commit or pull request when known.
+* Distinguish implemented features from proposed work.
+* Record test results only when they have actually been observed.
+* Update the architecture and known limitations when implementation changes affect them.
+* Avoid treating a successful test run as proof of complete correctness.
+* Keep the README focused on how to use the current project.
+* Keep this file focused on development history, implementation status, and outstanding work.
