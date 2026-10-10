@@ -49,10 +49,12 @@ def get_answer(
             sources.append(source)
 
     context = build_context(best_docs)
+    answer_mode = "local" if best_docs else "model"
 
     prompt = build_prompt(
         context,
         question,
+        answer_mode=answer_mode,
     )
 
     response = ask(prompt)
@@ -60,4 +62,5 @@ def get_answer(
     return {
         "answer": response,
         "sources": sources,
+        "answer_mode": answer_mode,
     }

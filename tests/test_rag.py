@@ -97,15 +97,8 @@ def test_get_answer(monkeypatch, documents, fake_ask):
 
     ask, captured = fake_ask
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", ask)
 
     answer = get_answer(
         directory=documents,
@@ -115,6 +108,7 @@ def test_get_answer(monkeypatch, documents, fake_ask):
     assert answer == {
         "answer": "Here is the generated answer.",
         "sources": ["rag.md", "python.md"],
+        "answer_mode": "local",
     }
 
     assert captured["prompt"] == (
@@ -123,6 +117,9 @@ def test_get_answer(monkeypatch, documents, fake_ask):
         "RAG combines document retrieval with language model generation.\n"
         "Source: python.md\n"
         "Python is a high-level programming language.\n"
+        "Answer the question using the provided context. "
+        "If the context does not contain the answer, "
+        "say that the information was not found in the local documentation.\n"
         "Question:\n"
         "What is RAG?"
     )
@@ -135,11 +132,7 @@ def test_get_answer_empty_directory(monkeypatch, tmp_path, fake_ask):
         "devassistant.rag.search",
         lambda documents, question, top_k=3, score_threshold=0.0: [],
     )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        ask,
-    )
+    monkeypatch.setattr("devassistant.rag.ask", ask)
 
     answer = get_answer(
         directory=tmp_path,
@@ -149,10 +142,15 @@ def test_get_answer_empty_directory(monkeypatch, tmp_path, fake_ask):
     assert answer == {
         "answer": "Here is the generated answer.",
         "sources": [],
+        "answer_mode": "model",
     }
 
     assert captured["prompt"] == (
-        "Context:\n\n"
+        "You are a helpful assistant.\n"
+        "Answer the question using your general knowledge.\n"
+        "No relevant local documentation was retrieved. "
+        "Do not claim that your answer is based on local documents.\n"
+        "If you are uncertain, state that clearly.\n"
         "Question:\n"
         "What is RAG?"
     )
@@ -188,15 +186,8 @@ def test_get_answer_with_chunks(monkeypatch, tmp_path):
         captured["prompt"] = prompt
         return "RAG retrieves relevant information."
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     answer = get_answer(
         directory=tmp_path,
@@ -208,6 +199,7 @@ def test_get_answer_with_chunks(monkeypatch, tmp_path):
     assert answer == {
         "answer": "RAG retrieves relevant information.",
         "sources": ["document.md"],
+        "answer_mode": "local",
     }
 
     assert len(captured["documents"]) > 1
@@ -216,6 +208,9 @@ def test_get_answer_with_chunks(monkeypatch, tmp_path):
         "Context:\n"
         f"Source: {captured['documents'][1]['source']}\n"
         f"{captured['documents'][1]['content']}\n"
+        "Answer the question using the provided context. "
+        "If the context does not contain the answer, "
+        "say that the information was not found in the local documentation.\n"
         "Question:\n"
         "What does RAG retrieve?"
     )
@@ -243,15 +238,8 @@ def test_get_answer_with_top_k(monkeypatch, tmp_path):
     def fake_ask(prompt):
         return "Answer"
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     answer = get_answer(
         directory=tmp_path,
@@ -264,6 +252,7 @@ def test_get_answer_with_top_k(monkeypatch, tmp_path):
     assert answer == {
         "answer": "Answer",
         "sources": [],
+        "answer_mode": "model",
     }
 
     assert captured["top_k"] == 5
@@ -271,9 +260,7 @@ def test_get_answer_with_top_k(monkeypatch, tmp_path):
 
 def test_get_answer_includes_sources(monkeypatch, tmp_path):
     document = tmp_path / "rag.md"
-    document.write_text(
-        "RAG retrieves relevant information."
-    )
+    document.write_text("RAG retrieves relevant information.")
 
     def fake_search(
         documents,
@@ -295,15 +282,8 @@ def test_get_answer_includes_sources(monkeypatch, tmp_path):
     def fake_ask(prompt):
         return "Answer"
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     answer = get_answer(
         directory=tmp_path,
@@ -313,14 +293,13 @@ def test_get_answer_includes_sources(monkeypatch, tmp_path):
     assert answer == {
         "answer": "Answer",
         "sources": ["rag.md"],
+        "answer_mode": "local",
     }
 
 
 def test_get_answer_returns_sources(monkeypatch, tmp_path):
     document = tmp_path / "rag.md"
-    document.write_text(
-        "RAG retrieves relevant information."
-    )
+    document.write_text("RAG retrieves relevant information.")
 
     def fake_search(
         documents,
@@ -342,15 +321,8 @@ def test_get_answer_returns_sources(monkeypatch, tmp_path):
     def fake_ask(prompt):
         return "RAG retrieves relevant information."
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     result = get_answer(
         directory=tmp_path,
@@ -360,14 +332,13 @@ def test_get_answer_returns_sources(monkeypatch, tmp_path):
     assert result == {
         "answer": "RAG retrieves relevant information.",
         "sources": ["rag.md"],
+        "answer_mode": "local",
     }
 
 
 def test_get_answer_returns_unique_sources(monkeypatch, tmp_path):
     document = tmp_path / "rag.md"
-    document.write_text(
-        "RAG retrieves relevant information."
-    )
+    document.write_text("RAG retrieves relevant information.")
 
     def fake_search(
         documents,
@@ -405,15 +376,8 @@ def test_get_answer_returns_unique_sources(monkeypatch, tmp_path):
     def fake_ask(prompt):
         return "Here is the generated answer."
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     result = get_answer(
         directory=tmp_path,
@@ -423,6 +387,7 @@ def test_get_answer_returns_unique_sources(monkeypatch, tmp_path):
     assert result == {
         "answer": "Here is the generated answer.",
         "sources": ["rag.md", "python.md"],
+        "answer_mode": "local",
     }
 
 
@@ -458,9 +423,7 @@ def test_build_context():
 
 def test_get_answer_passes_score_threshold(monkeypatch, tmp_path):
     document = tmp_path / "rag.md"
-    document.write_text(
-        "RAG retrieves relevant information."
-    )
+    document.write_text("RAG retrieves relevant information.")
 
     captured = {}
 
@@ -486,15 +449,8 @@ def test_get_answer_passes_score_threshold(monkeypatch, tmp_path):
     def fake_ask(prompt):
         return "Here is the generated answer."
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     get_answer(
         directory=tmp_path,
@@ -510,9 +466,7 @@ def test_get_answer_excludes_documents_below_score_threshold(
     tmp_path,
 ):
     document = tmp_path / "rag.md"
-    document.write_text(
-        "RAG retrieves relevant information."
-    )
+    document.write_text("RAG retrieves relevant information.")
 
     captured = {}
 
@@ -539,15 +493,8 @@ def test_get_answer_excludes_documents_below_score_threshold(
         captured["prompt"] = prompt
         return "Here is the generated answer."
 
-    monkeypatch.setattr(
-        "devassistant.rag.search",
-        fake_search,
-    )
-
-    monkeypatch.setattr(
-        "devassistant.rag.ask",
-        fake_ask,
-    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
 
     result = get_answer(
         directory=tmp_path,
@@ -557,5 +504,6 @@ def test_get_answer_excludes_documents_below_score_threshold(
 
     assert result["answer"] == "Here is the generated answer."
     assert result["sources"] == ["relevant.md"]
+    assert result["answer_mode"] == "local"
     assert "Relevant information." in captured["prompt"]
     assert "Irrelevant information." not in captured["prompt"]
