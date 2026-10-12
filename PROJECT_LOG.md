@@ -103,6 +103,41 @@ It does not provide persistent storage of embeddings across application restarts
 
 PR #20: `Cache document embeddings with LRU eviction`.
 
+### October 12, 2026 — System Architecture Documentation
+
+Updated `docs/architecture/system-architecture.md` to clarify Recall's current architecture and its planned evolution.
+
+The documentation:
+
+* Describes the current RAG pipeline and its main components.
+* Clarifies the behavior of Adaptive Retrieval Fallback and the `answer_mode` returned by `get_answer()`.
+* Documents the current retrieval and source-ranking behavior.
+* Describes the existing embedding cache and its limitations.
+* Distinguishes implemented functionality from planned architectural improvements.
+* Outlines the target multi-domain architecture, including specialized RAG configurations, global retrieval, and a central orchestrator.
+* Describes the potential long-term evolution toward agent capabilities without treating them as a current feature.
+
+The multi-domain architecture and orchestrator remain planned improvements and are not implemented by this documentation change.
+
+### October 12, 2026 — Development Environment Validation
+
+Validated the Recall development environment on the M2I workstation.
+
+* Standardized the Python version to Python 3.12.10.
+* Recreated the virtual environment.
+* Installed the project in editable mode to resolve package imports.
+* Installed development dependencies through `requirements-dev.txt`.
+* Ran the complete test suite successfully.
+
+**Test results:**
+
+* 69 tests collected and passed.
+* 0 failures.
+* Execution time: 24.08 seconds.
+
+The environment is now consistent with the project's Python version requirements, and the full test suite passes.
+
+
 ---
 
 ## 3. Current Architecture
