@@ -137,6 +137,18 @@ Validated the Recall development environment on the M2I workstation.
 
 The environment is now consistent with the project's Python version requirements, and the full test suite passes.
 
+### October 15, 2026 — Multi-Domain Architecture Plan
+
+Completed the target multi-domain architecture section in `docs/architecture/system-architecture.md`. The section now distinguishes planned capabilities from the implemented single-domain pipeline and records the intended domain model, shared retrieval flow, provenance requirements, and incremental implementation milestones.
+
+No multi-domain orchestration behavior is implemented by this documentation update.
+
+### October 15, 2026 — Initial Multi-Domain Retrieval
+
+Added the document directory to `KnowledgeDomain`, extracted `retrieve_documents()`, and implemented `get_answer_for_domains()` for explicit domain collections. Multi-domain results are ranked by source score and retain domain/source provenance. The existing `get_answer()` response contract is preserved. Added unit tests for domain validation, retrieval parameter forwarding, provenance, and empty-result fallback.
+
+**Test results:** 69 tests passed across the model, RAG, chunking, document-loader, prompt, search, and similarity test modules. The live LM Studio integration tests were not run. The configured virtual environment still references a Python interpreter that is no longer installed; tests were run with the available Python 3.12 runtime and the existing project packages. Cross-domain retrieval quality and latency have not yet been evaluated.
+
 
 ---
 

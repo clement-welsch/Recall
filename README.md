@@ -20,6 +20,7 @@ Recall uses [LM Studio](https://lmstudio.ai/) to run local models through its Op
 * **Retrieval-Augmented Generation (RAG)** combining retrieved passages with a user question.
 * **Source tracking** to identify the files associated with retrieved passages.
 * **Adaptive retrieval fallback** that distinguishes between queries with and without retrieved results.
+* **Multi-domain retrieval** across configured document collections with domain and source provenance.
 * **Automated tests** covering core components and RAG integration.
 
 ## Project Status
@@ -37,12 +38,14 @@ The following capabilities have been implemented:
 * Generating answers with a chat model through LM Studio.
 * Returning source filenames alongside generated answers.
 * Selecting an answer mode based on whether retrieval returns results.
+* Retrieving across `KnowledgeDomain` collections through `get_answer_for_domains()`.
+* Ranking sources across those collections and preserving domain and filename provenance.
 
 On October 9, 2026, the automated test suite passed with 48 successful tests on Python 3.12.10. A separate integration test also passed against the configured LM Studio models at that time.
 
 Retrieval quality, prompt robustness, and performance on larger document collections still require further evaluation.
 
-The current implementation is a single-domain RAG pipeline. Multi-domain retrieval, specialized knowledge collections, and a central orchestrator are planned architectural improvements, not implemented features.
+`get_answer()` continues to provide the single-domain API. `get_answer_for_domains()` searches an explicit collection of knowledge domains using the shared retrieval engine. Cross-domain ranking assumes the domains use the same embedding model and retrieval parameters. Retrieval quality and latency across multiple domains still require evaluation.
 
 ## Architecture
 
@@ -159,7 +162,7 @@ Cosine similarity is a retrieval score, not a calibrated probability that a pass
 
 The search function supports two parameters:
 
-* `top_k`: maximum number of results returned.
+* `top_k`: maximum number of source files selected. Multiple chunks from one selected source may be returned.
 * `score_threshold`: minimum similarity score required for a result to be retained.
 
 Only results meeting the configured threshold are eligible for retrieval.
@@ -386,10 +389,35 @@ Parameters:
 | `question`        | User's question                            | Required |
 | `chunk_size`      | Maximum number of words per chunk          |       60 |
 | `overlap`         | Number of overlapping words between chunks |       12 |
-| `top_k`           | Maximum number of retrieved results        |        3 |
+| `top_k`           | Maximum number of source files selected     |        3 |
 | `score_threshold` | Minimum cosine similarity score            |      0.0 |
 
 The optimal values depend on the document collection, the embedding model, and the retrieval task. A similarity threshold should be evaluated empirically rather than assumed to be universally meaningful.
+
+### 4. Search multiple knowledge domains
+
+Pass the domains to search explicitly. Each domain points to its own Markdown directory:
+
+```python
+from devassistant.models import KnowledgeDomain
+from devassistant.rag import get_answer_for_domains
+
+domains = [
+    KnowledgeDomain(name="Python", directory="documents/python"),
+    KnowledgeDomain(name="RAG", directory="documents/rag"),
+]
+
+result = get_answer_for_domains(
+    domains=domains,
+    question="How does Recall retrieve relevant context?",
+)
+
+print(result["answer"])
+for source in result["sources"]:
+    print(f"- {source['domain']}: {source['source']}")
+```
+
+The `sources` field contains records with a domain name and filename. The current implementation searches all supplied domains. It uses one embedding model and shared retrieval parameters, which are required for meaningful cross-domain score ranking.
 
 ## Running the Tests
 
@@ -482,11 +510,10 @@ Potential areas for further development include:
 * Performance measurements on larger document collections.
 * Better assessment of retrieved-context relevance and sufficiency.
 * Support for additional document formats and ingestion strategies.
-* A reusable RAG engine supporting multiple specialized knowledge domains.
-* Global retrieval across relevant domains.
-* A central orchestrator to select domains and aggregate retrieval results.
+* Retrieval-quality and latency evaluation across multiple domains.
+* Query-based domain selection for searches that should use only some collections.
 
-The multi-domain architecture and orchestrator are planned improvements, not existing capabilities.
+The current orchestrator searches every domain supplied by the caller. Autonomous agent behavior remains a possible future direction only if concrete requirements justify it.
 
 An agent-based architecture may be considered later if the project develops requirements that justify autonomous tool selection or multi-step execution. It is not a prerequisite for the current RAG architecture.
 
