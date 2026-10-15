@@ -1,6 +1,12 @@
 import pytest
 
-from devassistant.rag import build_context, get_answer
+from devassistant.models import KnowledgeDomain
+from devassistant.rag import (
+    build_context,
+    get_answer,
+    get_answer_for_domains,
+    retrieve_documents,
+)
 
 
 @pytest.fixture
@@ -62,6 +68,138 @@ def fake_ask():
         return "Here is the generated answer."
 
     return _fake_ask, captured
+
+
+def test_retrieve_documents_loads_and_searches_domain_documents(
+    monkeypatch,
+    tmp_path,
+):
+    loaded_documents = [
+        {"content": "Python documentation", "source": "python.md"}
+    ]
+    retrieved_documents = [{"chunk": loaded_documents[0]}]
+    captured = {}
+
+    def fake_load_documents(directory, chunk_size, overlap):
+        captured["load"] = (directory, chunk_size, overlap)
+        return loaded_documents
+
+    def fake_search(documents, question, top_k, score_threshold):
+        captured["search"] = (documents, question, top_k, score_threshold)
+        return retrieved_documents
+
+    monkeypatch.setattr(
+        "devassistant.rag.load_documents",
+        fake_load_documents,
+    )
+    monkeypatch.setattr("devassistant.rag.search", fake_search)
+
+    results = retrieve_documents(
+        directory=tmp_path,
+        question="What is Python?",
+        chunk_size=80,
+        overlap=10,
+        top_k=2,
+        score_threshold=0.4,
+    )
+
+    assert results is retrieved_documents
+    assert captured["load"] == (tmp_path, 80, 10)
+    assert captured["search"] == (
+        loaded_documents,
+        "What is Python?",
+        2,
+        0.4,
+    )
+
+
+def test_get_answer_for_domains_ranks_sources_and_preserves_provenance(
+    monkeypatch,
+    tmp_path,
+):
+    first_domain = KnowledgeDomain("Python", tmp_path / "python")
+    second_domain = KnowledgeDomain("Docker", tmp_path / "docker")
+    third_domain = KnowledgeDomain("C++", tmp_path / "cpp")
+    results_by_directory = {
+        first_domain.directory: [
+            {
+                "chunk_score": 0.9,
+                "source_score": 0.9,
+                "chunk": {"content": "Python context", "source": "guide.md"},
+            }
+        ],
+        second_domain.directory: [
+            {
+                "chunk_score": 0.8,
+                "source_score": 0.8,
+                "chunk": {"content": "Docker context", "source": "guide.md"},
+            }
+        ],
+        third_domain.directory: [
+            {
+                "chunk_score": 0.4,
+                "source_score": 0.4,
+                "chunk": {"content": "C++ context", "source": "guide.md"},
+            }
+        ],
+    }
+    captured = {}
+
+    def fake_retrieve(directory, question, **kwargs):
+        return results_by_directory[directory]
+
+    def fake_ask(prompt):
+        captured["prompt"] = prompt
+        return "Combined answer"
+
+    monkeypatch.setattr("devassistant.rag.retrieve_documents", fake_retrieve)
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
+
+    result = get_answer_for_domains(
+        [first_domain, second_domain, third_domain],
+        "How do these tools work?",
+        top_k=2,
+    )
+
+    assert result == {
+        "answer": "Combined answer",
+        "sources": [
+            {"domain": "Python", "source": "guide.md"},
+            {"domain": "Docker", "source": "guide.md"},
+        ],
+        "answer_mode": "local",
+    }
+    python_position = captured["prompt"].index("Domain: Python")
+    docker_position = captured["prompt"].index("Domain: Docker")
+    assert python_position < docker_position
+    assert "Python context" in captured["prompt"]
+    assert "Docker context" in captured["prompt"]
+    assert "C++ context" not in captured["prompt"]
+
+
+def test_get_answer_for_domains_without_results_uses_model_mode(
+    monkeypatch,
+    tmp_path,
+):
+    domain = KnowledgeDomain("Python", tmp_path / "python")
+    captured = {}
+
+    monkeypatch.setattr(
+        "devassistant.rag.retrieve_documents",
+        lambda *args, **kwargs: [],
+    )
+
+    def fake_ask(prompt):
+        captured["prompt"] = prompt
+        return "Answer"
+
+    monkeypatch.setattr("devassistant.rag.ask", fake_ask)
+
+    result = get_answer_for_domains([domain], "Question")
+
+    assert result["answer_mode"] == "model"
+    assert result["sources"] == []
+    assert "No relevant local documentation was retrieved." in captured["prompt"]
 
 
 def test_get_answer(monkeypatch, documents, fake_ask):

@@ -4,7 +4,7 @@
 
 Recall is a local AI-powered knowledge assistant designed to help users retrieve, understand, and use information from their own documentation.
 
-The current implementation provides a Retrieval-Augmented Generation (RAG) pipeline that searches local Markdown documents and supplies relevant passages to a language model running through LM Studio.
+The current implementation provides a single-domain RAG pipeline and a multi-domain entry point that coordinates retrieval across configured knowledge domains. Both supply retrieved passages to a language model running through LM Studio.
 
 The long-term goal is to evolve Recall into a modular assistant that can manage multiple specialized knowledge domains, perform global searches across the available documentation, and coordinate retrieval through a central orchestrator.
 
@@ -45,7 +45,7 @@ The current implementation distinguishes between two answer modes:
 * `local`: at least one search result was retained.
 * `model`: no search results were retained.
 
-The mode is selected in `get_answer()` based on whether `search()` returns any results.
+The mode is selected according to whether retrieval returns any results. `get_answer()` handles one document directory; `get_answer_for_domains()` handles an explicit collection of `KnowledgeDomain` instances.
 
 The selected mode is passed to `build_prompt()`, which constructs the prompt used for generation.
 
@@ -101,7 +101,7 @@ The selected chunks are assembled into a textual context. The prompt builder com
 
 ### Output
 
-The current `get_answer()` function returns:
+The existing `get_answer()` function keeps this response contract:
 
 ```python
 {
@@ -115,6 +115,8 @@ The `sources` field contains unique source names associated with the retrieved c
 
 Although the search layer exposes `chunk_score` and `source_score`, these scores are not currently included in the final RAG response.
 
+`get_answer_for_domains()` returns the same top-level keys. Its `sources` value contains records with `domain` and `source` fields, so equal filenames from different domains remain distinguishable.
+
 ## 5. Main Components
 
 | Component            | Responsibility                                                                                           |
@@ -126,10 +128,11 @@ Although the search layer exposes `chunk_score` and `source_score`, these scores
 | `search.py`          | Scores chunks, filters by threshold, aggregates source scores, and selects sources.                      |
 | `prompt.py`          | Builds the prompt from the context, question, and answer mode.                                           |
 | `lmstudio_client.py` | Communicates with LM Studio for answer generation.                                                       |
-| `rag.py`             | Coordinates document loading, retrieval, context construction, prompt generation, and answer generation. |
+| `models.py`          | Defines knowledge domains with a name, document directory, description, and UUID.                            |
+| `rag.py`             | Provides reusable retrieval and coordinates single-domain or multi-domain answer generation.                 |
 | `config.py`          | Provides application configuration.                                                                      |
 
-This table describes the current component responsibilities. Future multi-RAG components are not yet represented as implemented modules.
+The multi-domain orchestrator receives domains explicitly from its caller. Persistent domain registration and automatic query-based domain selection are not implemented.
 
 ## 6. Search Scoring
 
@@ -176,7 +179,9 @@ The current implementation has the following limitations:
 * No calibrated relevance threshold.
 * No source or chunk scores in the final RAG response.
 * No independent assessment of whether the retrieved context sufficiently answers the question.
-* No multi-RAG orchestration layer.
+* Cross-domain ranking assumes that all domains use the same embedding model and retrieval settings.
+* No evaluation of cross-domain retrieval quality or latency.
+* No persistent domain registry or automatic domain selection.
 
 Potential improvements to the current engine include:
 
@@ -186,6 +191,59 @@ Potential improvements to the current engine include:
 4. Adding persistent indexing if performance measurements justify it.
 5. Evaluating answer grounding and behavior when context is insufficient.
 
-Multi-RAG orchestration is described separately in the target architecture below.
+The current multi-domain implementation and remaining limitations are described below.
 
-## 10. Target Architecture: Multiple K
+## 10. Target Architecture: Multiple Knowledge Domains
+
+The current `KnowledgeDomain`, `retrieve_documents()`, and `get_answer_for_domains()` provide an initial multi-domain implementation. Callers pass domains explicitly. Persistent registration, automatic domain selection, and empirical evaluation remain planned.
+
+### Knowledge domains
+
+A knowledge domain represents a specialized collection of documents, such as Python or Docker documentation. The current model stores its name, document directory, optional description, and UUID. Retrieval behavior is shared; domain-specific copies of the RAG pipeline are not needed.
+
+The initial domain model should remain small. Per-domain model selection, custom prompt policies, and other overrides should be introduced only when concrete use cases require them.
+
+### Shared retrieval and orchestration
+
+The current multi-domain flow is:
+
+```text
+Question
+   |
+   v
+Caller supplies domains explicitly
+   |
+   v
+Shared retrieval engine for each selected domain
+   |
+   v
+Combine and rank retrieved passages
+   |
+   v
+Build context and prompt
+   |
+   v
+Local language model
+   |
+   v
+Answer with source and domain provenance
+```
+
+The orchestrator coordinates retrieval calls and result aggregation. It does not duplicate document loading, embedding, similarity scoring, prompt construction, or model communication. The current ranking compares scores across domains, so all domains must use the same embedding model and retrieval settings. Orchestration is deterministic; an autonomous agent is unnecessary unless requirements later call for iterative tool selection or planning.
+
+### Retrieval result contract
+
+Global retrieval preserves the domain, source, chunk content, and retrieval scores internally. Context labels both domain and source. Results are ranked by each domain/source pair's maximum chunk score, then domain name, source name, and caller-supplied domain order for deterministic tie breaking. Scores from different embedding models or domain-specific configurations must not be treated as directly comparable.
+
+The final answer should retain source and domain provenance so users can see which collections contributed evidence. Handling duplicate passages, empty domains, and domains that fail to retrieve should be defined as part of the implementation contract.
+
+### Incremental implementation milestones
+
+1. ~~Define a minimal knowledge-domain model.~~
+2. ~~Extract a reusable retrieval operation while preserving the `get_answer()` contract.~~
+3. ~~Accept an explicit collection of domains for retrieval.~~
+4. ~~Aggregate results with deterministic ranking and domain/source provenance.~~
+5. ~~Provide a multi-domain answer entry point while preserving single-domain behavior.~~
+6. Evaluate retrieval quality and latency against representative single-domain and multi-domain queries before tuning selection or ranking.
+
+Each milestone should be independently testable. The current pipeline remains the reference implementation until these steps are implemented and validated.
