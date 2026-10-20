@@ -149,6 +149,12 @@ Added the document directory to `KnowledgeDomain`, extracted `retrieve_documents
 
 **Test results:** 69 tests passed across the model, RAG, chunking, document-loader, prompt, search, and similarity test modules. The live LM Studio integration tests were not run. The configured virtual environment still references a Python interpreter that is no longer installed; tests were run with the available Python 3.12 runtime and the existing project packages. Cross-domain retrieval quality and latency have not yet been evaluated.
 
+### October 19–20, 2026 — Context-Grounded Prompts
+
+Updated the local prompt to constrain factual claims to retrieved context, discourage filling gaps with general knowledge, and treat retrieved text as reference material rather than model instructions. The prompt also asks the model to report when the context lacks an answer. Updated prompt and RAG tests to assert the resulting prompt text, and revised the README and architecture documentation to describe the implemented behavior and its limitations.
+
+**Test results:** 88 tests passed in 18.59 seconds. The first full-suite attempt could not create pytest temporary directories under the Windows user temp folder; rerunning with a repository-local `--basetemp` succeeded. Prompt instructions do not guarantee factual grounding, and the no-retrieval fallback remains a separate behavior. Live LM Studio behavior was not exercised by this test run.
+
 
 ---
 

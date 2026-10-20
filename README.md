@@ -190,7 +190,9 @@ Both modes use the configured local LLM.
 
 This fallback distinguishes between the presence and absence of retrieval results. It does not evaluate whether the retrieved context is relevant, sufficient, or factually adequate to answer the question.
 
-The behavior of the generated answer also depends on the prompt implementation and the configured model. The current mode selection should not be interpreted as a guarantee of factual grounding.
+The local prompt instructs the model to make factual claims only when supported by retrieved context, avoid filling gaps with general knowledge, and treat retrieved text as reference material rather than instructions. These prompt instructions guide generation but do not guarantee factual grounding; behavior still depends on the configured model.
+
+The prompt also asks the model to report when the context does not contain the answer. The fallback mode for an empty retrieval result uses a separate prompt without document context.
 
 For further implementation details, see [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md).
 
