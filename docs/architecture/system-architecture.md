@@ -69,6 +69,8 @@ The current fallback distinguishes an empty result set from a non-empty result s
 
 Cosine similarity scores are measures of embedding similarity, not calibrated probabilities of relevance or factual correctness.
 
+For non-empty retrieval results, `build_prompt()` instructs the model to support factual claims with retrieved context, avoid filling gaps with general knowledge, treat retrieved text as reference material, and report when the context lacks the answer. These instructions do not guarantee that the generated answer is grounded.
+
 ### Planned improvements
 
 Future improvements may include:
