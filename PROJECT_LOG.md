@@ -155,6 +155,10 @@ Updated the local prompt to constrain factual claims to retrieved context, disco
 
 **Test results:** 88 tests passed in 18.59 seconds. The first full-suite attempt could not create pytest temporary directories under the Windows user temp folder; rerunning with a repository-local `--basetemp` succeeded. Prompt instructions do not guarantee factual grounding, and the no-retrieval fallback remains a separate behavior. Live LM Studio behavior was not exercised by this test run.
 
+### October 20, 2026 — Retrieval Evaluation Guided Exercise
+
+Started `Klement/feat/retrieval-evaluation` from the merged `develop` branch. Added a guided Jupyter exercise at `notebooks/2026-10-20-retrieval-evaluation.ipynb`, a function contract, acceptance tests for per-query Precision@k, Recall@k, and Reciprocal Rank@k, and links in the README and architecture documentation. The exercise establishes the workflow for future roadmap features: prepare a scoped TP notebook, acceptance tests, and documentation before the user implements the functional code. Each TP includes one or two progressive hints, and completed steps are reviewed together. Notebook filenames use the `YYYY-MM-DD-<topic>.ipynb` convention to preserve chronological order when sorted alphabetically. `evaluate_retrieval()` currently raises `NotImplementedError`; the tests are expected to fail until the implementation is completed.
+
 
 ---
 
