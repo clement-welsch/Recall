@@ -128,6 +128,7 @@ Although the search layer exposes `chunk_score` and `source_score`, these scores
 | `embeddings.py`      | Generates embeddings and maintains an in-memory LRU cache.                                               |
 | `similarity.py`      | Computes cosine similarity.                                                                              |
 | `search.py`          | Scores chunks, filters by threshold, aggregates source scores, and selects sources.                      |
+| `evaluation.py`      | Defines per-query retrieval metrics; functional implementation is part of a guided exercise.             |
 | `prompt.py`          | Builds the prompt from the context, question, and answer mode.                                           |
 | `lmstudio_client.py` | Communicates with LM Studio for answer generation.                                                       |
 | `models.py`          | Defines knowledge domains with a name, document directory, description, and UUID.                            |
@@ -192,6 +193,8 @@ Potential improvements to the current engine include:
 3. Exposing source metadata and scores through the RAG response.
 4. Adding persistent indexing if performance measurements justify it.
 5. Evaluating answer grounding and behavior when context is insufficient.
+
+The `devassistant.evaluation` module defines a per-query contract for Precision@k, Recall@k, and Reciprocal Rank@k. Its implementation and a representative question dataset are not yet complete. The guided exercise is in [`notebooks/2026-10-20-retrieval-evaluation.ipynb`](../../notebooks/2026-10-20-retrieval-evaluation.ipynb).
 
 The current multi-domain implementation and remaining limitations are described below.
 

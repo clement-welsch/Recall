@@ -449,6 +449,7 @@ The test suite covers:
 * Prompt construction.
 * RAG context construction and retrieval.
 * RAG integration.
+* Per-query retrieval evaluation metrics (implementation exercise in progress).
 
 Some tests use mocked dependencies to isolate individual components. The integration test exercises the configured RAG pipeline with LM Studio and therefore requires a working local model server.
 
@@ -456,7 +457,7 @@ A successful unit test suite does not, by itself, guarantee answer quality, fact
 
 ### Test Status
 
-**69 tests passed** on Python 3.12.10 (October 12, 2026).
+**88 tests passed** on the merged `develop` revision (October 20, 2026). This feature branch adds 11 acceptance test cases for the retrieval evaluation exercise; they are expected to fail with `NotImplementedError` until the implementation is written.
 
 The test suite covers document chunking, document loading, embeddings and caching, prompt construction, RAG pipeline behavior, retrieval scoring, similarity calculations, and integration.
 
@@ -468,12 +469,15 @@ Recall/
 ├── docs/
 │   └── architecture/
 │       └── system-architecture.md
+├── notebooks/
+│   └── 2026-10-20-retrieval-evaluation.ipynb
 ├── src/
 │   └── devassistant/
 │       ├── __init__.py
 │       ├── chunking.py
 │       ├── config.py
 │       ├── document_loader.py
+│       ├── evaluation.py
 │       ├── embeddings.py
 │       ├── lmstudio_client.py
 │       ├── prompt.py
@@ -489,6 +493,7 @@ Recall/
 │   ├── test_prompt.py
 │   ├── test_rag.py
 │   ├── test_rag_integration.py
+│   ├── test_retrieval_evaluation.py
 │   ├── test_search.py
 │   └── test_similarity.py
 ├── pyproject.toml
@@ -514,6 +519,8 @@ Potential areas for further development include:
 * Support for additional document formats and ingestion strategies.
 * Retrieval-quality and latency evaluation across multiple domains.
 * Query-based domain selection for searches that should use only some collections.
+
+Roadmap features are prepared as guided notebooks in `notebooks/`, with acceptance tests and documentation before their functional implementation. Each TP includes one or two progressive hints, and we review each completed step together. Notebook filenames use `YYYY-MM-DD-<topic>.ipynb` so alphabetical ordering follows creation chronology. Start with [`2026-10-20-retrieval-evaluation.ipynb`](notebooks/2026-10-20-retrieval-evaluation.ipynb).
 
 The current orchestrator searches every domain supplied by the caller. Autonomous agent behavior remains a possible future direction only if concrete requirements justify it.
 
