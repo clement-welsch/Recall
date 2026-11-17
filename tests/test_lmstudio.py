@@ -1,6 +1,7 @@
 from devassistant.lmstudio_client import ask
+import pytest
 
-
+@pytest.mark.lmstudio
 def test_ask():
     response = ask(
         "Explique en une phrase ce qu'est le Nutri-Score."

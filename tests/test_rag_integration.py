@@ -1,6 +1,7 @@
 from devassistant.rag import get_answer
+import pytest
 
-
+@pytest.mark.lmstudio
 def test_rag_integration(tmp_path):
     python_file = tmp_path / "python.md"
     python_file.write_text(
