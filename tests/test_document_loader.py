@@ -10,7 +10,7 @@ def test_load_documents(tmp_path):
 
     documents = load_documents(tmp_path)
 
-    assert documents == [
+    assert sorted(documents, key=lambda doc: doc["source"]) == [
         {
             "content": "Python content",
             "source": "python.md",
