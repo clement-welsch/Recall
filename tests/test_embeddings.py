@@ -7,22 +7,26 @@ texts = [
     "Les pommes sont des fruits.",
 ]
 
+@pytest.mark.lmstudio
 def test_embedding_count():
     vectors = embed(texts)
     assert len(vectors) == len(texts)
 
+@pytest.mark.lmstudio
 def test_embedding_dimension():
     vectors = embed(texts)
 
     for vector in vectors:
         assert len(vector) == 768
 
+@pytest.mark.lmstudio
 def test_embedding_type():
     vectors = embed(texts)
 
     for vector in vectors:
         assert isinstance(vector, list)
 
+@pytest.mark.lmstudio
 def test_embedding_values():
     vectors = embed(texts)
     for vector in vectors:
@@ -33,6 +37,7 @@ def test_embedding_empty_input():
     with pytest.raises(ValueError):
         embed([])
 
+@pytest.mark.lmstudio
 def test_embedding_single_text():
     vectors = embed(["Le Nutri-Score évalue la qualité nutritionnelle."])
 
