@@ -13,3 +13,6 @@ __pycache__/
 htmlcov/
 
 data/
+
+# Local Codex execution logs
+codex-test.jsonl
