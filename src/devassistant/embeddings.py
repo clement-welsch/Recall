@@ -42,7 +42,7 @@ def embed(texts):
             input=missing_texts,
         )
 
-        for text, embedding in zip(missing_texts, response.data):
+        for text, embedding in zip(missing_texts, response.data, strict=False):
             vectors_by_text[text] = embedding.embedding
 
             key = (model, text)

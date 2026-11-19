@@ -16,10 +16,7 @@ class KnowledgeDomain:
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError("Name must be a non-empty string")
 
-        if (
-            not isinstance(self.directory, (str, Path))
-            or not str(self.directory).strip()
-        ):
+        if not isinstance(self.directory, (str, Path)) or not str(self.directory).strip():
             raise ValueError("Directory must be a non-empty path")
         self.directory = Path(self.directory)
 

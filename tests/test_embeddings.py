@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 
 from devassistant.embeddings import clear_embedding_cache, embed
@@ -9,11 +11,13 @@ texts = [
 ]
 
 
+@pytest.mark.lmstudio
 def test_embedding_count():
     vectors = embed(texts)
     assert len(vectors) == len(texts)
 
 
+@pytest.mark.lmstudio
 def test_embedding_dimension():
     vectors = embed(texts)
 
@@ -21,6 +25,7 @@ def test_embedding_dimension():
         assert len(vector) == 768
 
 
+@pytest.mark.lmstudio
 def test_embedding_type():
     vectors = embed(texts)
 
@@ -28,6 +33,7 @@ def test_embedding_type():
         assert isinstance(vector, list)
 
 
+@pytest.mark.lmstudio
 def test_embedding_values():
     vectors = embed(texts)
     for vector in vectors:
@@ -40,15 +46,11 @@ def test_embedding_empty_input():
         embed([])
 
 
+@pytest.mark.lmstudio
 def test_embedding_single_text():
     vectors = embed(["Le Nutri-Score évalue la qualité nutritionnelle."])
 
     assert len(vectors) == 1
-
-
-###
-
-from types import SimpleNamespace
 
 
 @pytest.fixture

@@ -28,7 +28,7 @@ def search(
 
     scored_chunks = []
 
-    for vector, document in zip(vectors_docs, documents):
+    for vector, document in zip(vectors_docs, documents, strict=False):
         chunk_score = cosine_similarity(vector, question_vector)
 
         if chunk_score >= score_threshold:

@@ -15,9 +15,7 @@ def documents(tmp_path):
     python_file.write_text("Python is a high-level programming language.")
 
     rag_file = tmp_path / "rag.md"
-    rag_file.write_text(
-        "RAG combines document retrieval with language model generation."
-    )
+    rag_file.write_text("RAG combines document retrieval with language model generation.")
 
     return tmp_path
 
@@ -35,10 +33,7 @@ def fake_search():
                 "chunk_score": 1.0,
                 "source_score": 1.0,
                 "chunk": {
-                    "content": (
-                        "RAG combines document retrieval "
-                        "with language model generation."
-                    ),
+                    "content": ("RAG combines document retrieval with language model generation."),
                     "source": "rag.md",
                 },
             },
@@ -208,10 +203,7 @@ def test_get_answer(monkeypatch, documents, fake_ask):
                 "chunk_score": 1.0,
                 "source_score": 1.0,
                 "chunk": {
-                    "content": (
-                        "RAG combines document retrieval "
-                        "with language model generation."
-                    ),
+                    "content": ("RAG combines document retrieval with language model generation."),
                     "source": "rag.md",
                 },
             },
@@ -548,10 +540,7 @@ def test_build_context():
     context = build_context(documents)
 
     assert context == (
-        "Source: rag.md\n"
-        "First relevant chunk.\n"
-        "Source: python.md\n"
-        "Second relevant chunk."
+        "Source: rag.md\nFirst relevant chunk.\nSource: python.md\nSecond relevant chunk."
     )
 
 
