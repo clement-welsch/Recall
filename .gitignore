@@ -13,3 +13,8 @@ __pycache__/
 htmlcov/
 
 data/
+# Development tools
+.venv-tools/
+
+# Codex execution logs
+codex-test.jsonl
