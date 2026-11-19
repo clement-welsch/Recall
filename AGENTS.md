@@ -2,101 +2,118 @@
 
 ## 1. Project Overview
 
-Recall is a local, Python-based knowledge retrieval assistant for developers.
-
-It combines semantic search, document retrieval, and Retrieval-Augmented Generation (RAG) using local models served through LM Studio's OpenAI-compatible API.
+Recall is a local Python knowledge retrieval assistant for developers, combining semantic search and Retrieval-Augmented Generation (RAG).
 
 - Repository: `Recall`
 - Python package: `devassistant`
-- Main source directory: `src/devassistant/`
+- Source: `src/devassistant/`
+- Tests: `tests/`
+- Educational exercises: `notebooks/`
+- Architecture: `docs/architecture/`
 
-Recall is both a functional RAG application and an educational development project.
+Recall is both a functional application and an educational project. Preserve existing behavior and support progressive learning.
 
-Agents must preserve existing functionality while supporting progressive learning and maintainable development.
-
-## 2. Project Architecture
-
-Core modules:
+## 2. Architecture
 
 | Module | Responsibility |
 |---|---|
-| `config.py` | LM Studio and model configuration |
-| `document_loader.py` | Markdown document ingestion |
-| `chunking.py` | Word-based text chunking with overlap |
-| `embeddings.py` | Embedding generation and LRU caching |
-| `similarity.py` | Cosine similarity calculations |
-| `search.py` | Semantic retrieval and ranking |
+| `config.py` | Local models and configuration |
+| `document_loader.py` | Markdown ingestion |
+| `chunking.py` | Text chunking and overlap |
+| `embeddings.py` | Embeddings and LRU cache |
+| `similarity.py` | Cosine similarity |
+| `search.py` | Retrieval and ranking |
 | `prompt.py` | Prompt construction |
-| `lmstudio_client.py` | Local model API integration |
-| `rag.py` | RAG orchestration and answer generation |
-| `evaluation.py` | Retrieval evaluation exercises |
+| `lmstudio_client.py` | Local model API |
+| `rag.py` | RAG orchestration |
+| `evaluation.py` | Retrieval evaluation |
 
-Additional directories:
+Before architectural changes, consult `README.md` and relevant documentation in `docs/architecture/`.
 
-- `tests/`: Automated tests.
-- `notebooks/`: Guided development exercises.
-- `docs/architecture/`: Architecture documentation.
-
-Before structural changes, read `README.md` and the relevant documentation in `docs/architecture/`.
-
-Do not reorganize modules or introduce architectural abstractions without a demonstrated need.
+Avoid unnecessary abstractions, dependencies and module reorganizations.
 
 ## 3. Technology Stack
 
-- Python 3.12 or later, subject to dependency compatibility.
-- pytest for automated testing.
-- Ruff for Python linting and formatting.
-- pre-commit for Git quality hooks.
-- LM Studio for local inference.
-- OpenAI-compatible local API.
-- Nomic Embed Text v1.5 for embeddings.
-- Gemma 4 E4B for answer generation.
+- Python 3.12+, subject to dependency compatibility
+- pytest — automated tests
+- Ruff — linting and formatting
+- pre-commit — Git quality hooks
+- LM Studio — local inference
+- Nomic Embed Text v1.5 — 768-dimensional embeddings
+- Gemma 4 E4B — answer generation
 
-Default local API endpoint:
+Default local API: `http://localhost:1234/v1`
 
-`http://localhost:1234/v1`
+Do not assume LM Studio is running, especially in CI. Do not assume a specific operating system, Python executable or virtual environment.
 
-Do not assume LM Studio or its models are available in CI.
+## 4. Development Rules
 
-Do not assume the development environment uses a specific operating system, Python executable, or virtual environment path.
+1. Inspect relevant code and tests before modifying anything.
+2. Prefer minimal, modular and independently testable changes.
+3. Preserve public APIs and backward compatibility unless explicitly required.
+4. Use descriptive names, type hints and clear error handling.
+5. Fix root causes instead of suppressing failures.
+6. Avoid unrelated refactoring and repository-wide formatting.
+7. Keep behavior deterministic and portable across Windows and Linux.
+8. Document non-obvious algorithms and architectural decisions.
+9. Never introduce cloud inference or external services without authorization.
+10. Respect existing architecture and project conventions.
 
-## 4. Development Principles
+## 5. RAG Contracts
 
-1. Prefer simple, modular Python implementations.
-2. Preserve separation of concerns between modules.
-3. Avoid unnecessary dependencies.
-4. Preserve public APIs unless a change is explicitly required.
-5. Maintain backward compatibility where practical.
-6. Use descriptive names and type hints for new code.
-7. Document non-obvious algorithms and design decisions.
-8. Do not introduce network services or cloud inference without explicit approval.
-9. Avoid unrelated refactoring or formatting changes.
-10. Keep changes focused and independently testable.
-11. Prefer deterministic behavior across operating systems.
-12. Investigate root causes rather than suppressing errors.
+Preserve:
 
-Before implementing a change, inspect the relevant existing code and tests.
+- Markdown ingestion and configurable chunking.
+- Cosine similarity and configurable thresholds.
+- Top-k source selection and source provenance.
+- Adaptive retrieval fallback.
+- Single-domain and multi-domain retrieval.
+- Existing embedding cache behavior.
 
-Prefer the smallest change that satisfies the requirements.
+### Public APIs
 
-## 5. Code Quality — Ruff
+- `get_answer()` — single-domain retrieval.
+- `get_answer_for_domains()` — retrieval across explicit `KnowledgeDomain` collections.
 
-Ruff is the canonical Python linter and formatter for Recall.
+Answer modes:
 
-The repository's `pyproject.toml` is the source of truth for Ruff configuration.
+- `local`: at least one retrieval result exists.
+- `model`: no retrieval result exists.
 
-Do not introduce competing formatting or linting tools without explicit approval.
+Both modes use the configured local LLM.
 
-### Required checks
+**Important:**
+- `local` does not guarantee sufficient or accurate retrieved context.
+- `top_k` limits selected source files, not necessarily individual chunks.
+- Do not silently change these semantics.
+
+## 6. Embedding Cache Contracts
+
+The configured embedding model produces 768-dimensional vectors.
+
+The in-memory LRU cache must:
+
+- Hold at most 1,024 entries.
+- Use `(model_identifier, input_text)` as its key.
+- Deduplicate repeated inputs.
+- Batch missing embedding requests.
+- Preserve input order.
+- Evict least recently used entries.
+
+Do not introduce persistent embedding storage without documenting invalidation and model compatibility.
+
+## 7. Code Quality
+
+Ruff is the canonical Python linter and formatter.
+
+Configuration source of truth: `pyproject.toml`.
+
+Required checks:
 
 ```bash
 python -m ruff check .
 python -m ruff format --check .
 ```
-
-Both commands must pass before a task is considered complete.
-
-### Automatic fixes
 
 For targeted corrections:
 
@@ -105,143 +122,62 @@ python -m ruff check --fix path/to/file.py
 python -m ruff format path/to/file.py
 ```
 
-For repository-wide maintenance tasks:
-
-```bash
-python -m ruff check --fix .
-python -m ruff format .
-```
-
-Repository-wide automatic fixes must not be used casually during unrelated feature development.
-
-### Rules
+Rules:
 
 - Respect the existing Ruff configuration.
-- Keep imports organized.
-- Use consistent formatting.
-- Do not add blanket `noqa` suppressions.
-- Document justified rule exceptions.
-- Do not modify unrelated files solely to satisfy formatting.
-- Do not change exception types without reviewing their callers and tests.
-- Do not change runtime behavior merely to satisfy a lint recommendation.
-- Do not weaken Ruff configuration to hide existing violations.
+- Avoid blanket `noqa` suppressions.
+- Do not weaken lint rules to hide violations.
+- Do not change runtime behavior solely to satisfy linting.
+- Do not format unrelated files.
+- Review exception contracts before changing exception types.
+- Do not introduce competing formatters without approval.
 
-Prefer fixing the underlying issue over disabling a rule.
+## 8. Pre-commit
 
-## 6. Git Hooks — pre-commit
+Configuration: `.pre-commit-config.yaml`
 
-Recall uses pre-commit to enforce code quality before commits.
+Expected hooks include `ruff-check` and `ruff-format`.
 
-Configuration:
-
-`.pre-commit-config.yaml`
-
-The configured hooks include:
-
-- `ruff-check`: Python linting and import validation.
-- `ruff-format`: Python formatting.
-
-### Installation
+Install when needed:
 
 ```bash
 python -m pip install pre-commit
 python -m pre_commit install
 ```
 
-If pre-commit is installed in a separate tooling environment, invoke its executable from that environment.
-
-Do not assume pre-commit is installed in Recall's application virtual environment.
-
-### Validation
+Validate:
 
 ```bash
 pre-commit run --all-files
 ```
 
-Use the appropriate executable path if pre-commit is not available on `PATH`.
+Use the executable from the appropriate tooling environment if necessary.
 
-### Rules
+Rules:
 
-- Never bypass hooks with `--no-verify` without explicit authorization.
-- If a hook modifies files, review the changes before staging them.
-- Rerun the hooks after automatic corrections.
-- Do not commit unrelated files.
-- Do not commit virtual environments or generated local artifacts.
-- Do not treat a successful local hook execution as proof that CI will pass.
-
-If hooks fail because of environment or dependency problems, report the issue instead of disabling them.
-
-## 7. RAG-Specific Requirements
-
-Preserve the following behavior:
-
-- Markdown document ingestion.
-- Configurable chunk size and overlap.
-- Cosine similarity ranking.
-- Configurable similarity thresholds.
-- Top-k source selection.
-- Source provenance.
-- Embedding cache behavior.
-- Adaptive retrieval fallback.
-- Multi-domain retrieval.
-
-### API contracts
-
-`get_answer()` supports single-domain retrieval.
-
-`get_answer_for_domains()` supports retrieval across explicit `KnowledgeDomain` collections.
-
-Answer modes:
-
-- `local`: At least one retrieval result exists.
-- `model`: No retrieval result exists.
-
-Both modes use the configured local LLM.
-
-Do not interpret `local` as proof that retrieved context is sufficient or factually correct.
-
-Do not silently change the meaning of `top_k`. It currently limits selected source files, not necessarily individual chunks.
-
-## 8. Embedding Requirements
-
-The configured embedding model produces 768-dimensional vectors.
-
-The in-memory LRU cache:
-
-- Has a maximum capacity of 1,024 entries.
-- Uses model identifier and input text as its key.
-- Deduplicates repeated input texts.
-- Batches missing embedding requests.
-- Preserves input order.
-- Evicts least recently used entries.
-
-Preserve these properties when modifying embedding code.
-
-Do not introduce persistent embedding storage without documenting cache invalidation and model compatibility.
+- Never bypass hooks using `--no-verify` without authorization.
+- Review files modified by hooks before staging.
+- Rerun hooks after automatic corrections.
+- Report environment failures instead of disabling hooks.
+- A successful local hook run does not guarantee CI success.
 
 ## 9. Testing Strategy
 
-Recall distinguishes deterministic tests from tests requiring live LM Studio inference.
-
-### Fast tests — no LM Studio
+### Default: deterministic tests
 
 ```bash
 python -m pytest -m "not lmstudio"
 ```
 
-This is the default test command for automated agents and CI.
+This is the default for agents and CI. It must work without LM Studio.
 
-It must not require an active LM Studio server.
-
-### Complete test suite
+### Live integration tests
 
 ```bash
 python -m pytest
 ```
 
-Run the complete suite when LM Studio and the required models are available.
-
-Do not attempt to start or install LM Studio automatically without authorization.
+Run the complete suite only when LM Studio and required models are available.
 
 ### Focused tests
 
@@ -250,151 +186,98 @@ python -m pytest -v tests/test_search.py
 python -m pytest -v tests/test_rag.py
 ```
 
-Run relevant focused tests during development before executing broader checks.
+Testing requirements:
 
-### Testing requirements
+- Prefer deterministic fixtures and mocked model calls.
+- Mark live inference tests with `@pytest.mark.lmstudio`.
+- Add regression tests for confirmed bugs.
+- Preserve existing coverage.
+- Do not alter assertions to conceal defects.
+- Do not depend on unspecified filesystem ordering or timing.
+- Keep tests portable across Windows and Linux.
+- Do not automatically install or start LM Studio.
 
-1. Use deterministic fixtures for unit tests.
-2. Mock external model calls when testing application logic.
-3. Mark tests requiring live LM Studio with `@pytest.mark.lmstudio`.
-4. Do not silently skip tests without reporting them.
-5. Preserve existing test coverage when changing behavior.
-6. Add regression tests for confirmed bugs.
-7. Do not modify assertions merely to hide implementation defects.
-8. Verify exception contracts when changing exception types.
-9. Avoid dependence on filesystem iteration order.
-10. Ensure tests are portable across Windows and Linux.
+Report passed, failed, skipped, deselected and unexecuted tests accurately.
 
-Tests must not rely on unspecified file ordering, operating-system-specific paths, or timing assumptions.
-
-When ordering is part of an API contract, enforce it explicitly in the implementation and test it.
-
-### Test reporting
-
-Report:
-
-- Tests passed.
-- Tests failed.
-- Tests skipped or deselected.
-- Tests not executed.
-- Environment limitations.
-
-Never claim that tests passed without execution evidence.
+Never claim tests passed without execution evidence.
 
 ## 10. CI — GitHub Actions
 
-GitHub Actions provides independent validation of pull requests.
-
-Local Ruff and pre-commit checks do not replace CI.
-
-### Expected CI checks
+Expected checks:
 
 - Ruff linting.
 - Ruff formatting.
-- pytest without LM Studio.
+- pytest excluding `lmstudio` tests.
 
-CI should not require local model inference.
+CI must remain independent of local inference.
 
-### CI principles
+Prefer fast, deterministic workflows and dependency-compatible Python versions.
 
-- Prefer fast, deterministic workflows.
-- Use dependency-compatible Python versions.
-- Avoid unnecessary operating-system matrices.
-- Keep tests independent of local machine configuration.
-- Do not disable failing tests merely to obtain a green CI result.
-- Investigate differences between Windows and Linux.
-- Keep CI configuration aligned with `pyproject.toml` and `.pre-commit-config.yaml`.
+Do not disable failing tests to obtain green checks.
 
-A task is not considered CI-validated until the relevant GitHub Actions checks have completed successfully.
+Investigate platform-specific failures.
 
-Do not claim a PR is ready to merge when required checks are failing or pending.
+**A PR is not ready to merge while required CI checks are failing or pending.**
 
-## 11. Educational Development Rules
+## 11. Educational Workflow
 
-Recall is also a learning project.
+Recall supports guided learning through `notebooks/`.
 
-The `notebooks/` directory contains guided exercises designed to help the developer progressively implement new capabilities.
+For educational exercises:
 
-When working on an educational exercise:
-
-1. Explain the objective and expected behavior.
-2. Identify the relevant modules.
+1. Explain the objective and acceptance criteria.
+2. Identify relevant modules.
 3. Provide progressive hints before complete solutions.
-4. Encourage the developer to implement the solution.
-5. Use acceptance tests to validate progress.
-6. Review submitted implementations.
-7. Explain failures and suggest focused corrections.
+4. Let the developer implement the exercise.
+5. Review submitted code and test results.
+6. Explain failures and suggest focused corrections.
 
-Do not automatically complete an educational exercise unless explicitly requested.
+Do not complete educational exercises automatically unless explicitly requested.
 
-Do not replace an unfinished exercise with a complete implementation merely to make acceptance tests pass.
+Tests intentionally raising `NotImplementedError` may represent unfinished exercises rather than regressions.
 
-Tests intentionally raising `NotImplementedError` may represent planned exercises rather than regressions.
-
-Distinguish completed functionality from work in progress.
+Distinguish verified functionality from planned work.
 
 ## 12. Documentation
 
-Update documentation when changes affect:
+Update documentation when changing:
 
-- Public APIs.
-- Configuration.
-- Model requirements.
-- Retrieval behavior.
-- Architecture.
-- Installation.
-- Test commands.
-- Development tooling.
+- Public APIs or configuration.
+- Model requirements or retrieval behavior.
+- Architecture or installation.
+- Testing or development tooling.
 
-Keep `README.md` consistent with the implementation.
+Keep `README.md` synchronized with implementation.
 
-Use the existing architecture documentation:
+Architecture reference: `docs/architecture/system-architecture.md`
 
-`docs/architecture/system-architecture.md`
+Educational notebook naming: `YYYY-MM-DD-<topic>.ipynb`
 
-Name new educational notebooks using:
-
-`YYYY-MM-DD-<topic>.ipynb`
-
-Document changes to the development workflow in `CONTRIBUTING.md` when applicable.
+Update `CONTRIBUTING.md` when development workflows change.
 
 ## 13. Security and Privacy
 
 Recall is designed for local processing.
 
-- Never commit credentials or API secrets.
-- Never commit private course documents without authorization.
-- Do not upload user documents to external services.
-- Avoid logging document contents unnecessarily.
-- Keep local configuration and generated artifacts out of commits.
-- Do not commit `.venv/`, `.venv-tools/`, caches, or local execution logs.
-- Do not transmit local RAG documents to cloud models without explicit authorization.
-
-The default LM Studio API key is a local placeholder, not a production secret.
+- Never commit credentials or private course documents.
+- Never upload user documents to external services without authorization.
+- Never transmit RAG documents to cloud models without authorization.
+- Avoid logging sensitive document contents.
+- Exclude virtual environments, caches, logs and generated artifacts from commits.
+- Treat the default LM Studio API key as a local placeholder, not a production secret.
 
 ## 14. Git Workflow
 
-- Prefer small, focused changes.
-- Use descriptive branch names.
-- Write meaningful commit messages.
-- Include tests for behavioral changes.
-- Update documentation when necessary.
-- Do not merge pull requests without explicit authorization.
-- Do not modify unrelated files.
-- Inspect the working tree before staging changes.
-- Never overwrite unrelated uncommitted work.
+- Use focused branches, commits and pull requests.
+- Inspect `git status` and review diffs before staging.
+- Preserve unrelated uncommitted work.
+- Stage only intended files.
+- Do not commit, push or merge without authorization.
+- Never bypass branch protection or required CI checks.
 
-### Before committing
+### Validation checklist
 
-1. Inspect `git status`.
-2. Review the diff.
-3. Run relevant tests.
-4. Run Ruff checks.
-5. Run pre-commit hooks.
-6. Stage only intended files.
-7. Verify staged changes.
-
-Recommended commands:
+Before completing a development task, run the applicable checks:
 
 ```bash
 git status --short
@@ -403,48 +286,90 @@ python -m ruff check .
 python -m ruff format --check .
 python -m pytest -m "not lmstudio"
 pre-commit run --all-files
+```
+
+Before committing, also inspect staged changes:
+
+```bash
 git diff --cached --check
 ```
 
-Do not automatically commit or push unless explicitly requested or authorized by the task.
-
-Do not bypass branch protection or required CI checks.
+If a check cannot run, document why. Do not report it as passed.
 
 ## 15. Definition of Done
 
 A development task is complete when:
 
-- [ ] The requested behavior is implemented.
-- [ ] The implementation respects existing architecture.
-- [ ] Relevant tests have been added or updated.
-- [ ] Relevant tests pass.
-- [ ] Ruff lint passes.
-- [ ] Ruff format passes.
-- [ ] pre-commit hooks pass when available.
+- [ ] Requested behavior is implemented.
+- [ ] Existing architecture and API contracts are preserved.
+- [ ] Relevant tests are added or updated.
+- [ ] Applicable tests and quality checks pass.
 - [ ] Documentation is updated when necessary.
-- [ ] No unrelated files have been modified.
-- [ ] The Git diff has been reviewed.
+- [ ] No unrelated changes are included.
+- [ ] Git diff is reviewed.
 - [ ] Known limitations are documented.
 - [ ] CI status is reported when applicable.
 
-A task may be locally complete while CI validation is pending.
+Distinguish local completion from CI validation.
 
-Clearly distinguish these states.
+### Completion report
 
-Do not declare a PR ready for merge while required CI checks are failing.
+Summarize:
 
-## 16. Completion Report
+1. Changes and affected files.
+2. Tests and quality checks executed.
+3. CI status, if applicable.
+4. Limitations and remaining work.
 
-When completing a development task, report:
+Never claim unverified implementation, testing, commit, push or merge operations.
 
-1. Summary of changes.
-2. Files modified.
-3. Tests executed and results.
-4. Ruff and pre-commit results.
-5. CI status, if applicable.
-6. Known limitations.
-7. Remaining work.
+## 16. Conversation Scope Management
 
-Never claim that a feature is implemented, tested, committed, pushed, or merged unless that action has been verified.
+Keep ChatGPT and Codex conversations focused on coherent functional areas rather than individual GitHub issues.
 
-Keep completion reports concise and evidence-based.
+### Functional areas
+
+Recall's primary functional areas include:
+
+- Document ingestion and chunking.
+- Embeddings and caching.
+- Semantic search and ranking.
+- RAG orchestration and fallback.
+- LM Studio integration.
+- Retrieval evaluation.
+- Tests, tooling and CI.
+- Architecture and documentation.
+
+A conversation may cover several related issues within one functional area.
+
+### When to recommend a new conversation
+
+Recommend a transition when:
+
+1. The user switches to a different functional area.
+2. The main objective changes substantially.
+3. Multiple unrelated topics accumulate.
+4. Earlier requirements become difficult to track reliably.
+5. A major development phase ends and a distinct phase begins.
+
+Do not recommend a transition merely because an issue changes, a conversation grows longer or a minor correction is requested.
+
+Do not claim access to exact context-window usage unless explicitly available.
+
+### Transition procedure
+
+When a boundary is appropriate:
+
+1. Complete the current response.
+2. Explain briefly why a new conversation is recommended.
+3. Provide a concise handoff summary containing:
+   - Functional area and objective.
+   - Verified completed work.
+   - Relevant decisions and technical constraints.
+   - Issues, PRs and branch, if known.
+   - Outstanding work and known problems.
+4. Provide a ready-to-copy prompt for the next conversation.
+
+Conversation boundaries are recommendations, not mandatory interruptions.
+
+Never abandon active work solely to suggest a transition.
