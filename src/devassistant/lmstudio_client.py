@@ -11,6 +11,7 @@ client = OpenAI(
     api_key=LMSTUDIO_API_KEY,
 )
 
+
 def ask(prompt: str) -> str:
     response = client.chat.completions.create(
         model=LMSTUDIO_MODEL,

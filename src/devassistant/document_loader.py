@@ -1,12 +1,10 @@
-from pathlib import Path
-
 from devassistant.chunking import chunk_text
 
 
 def load_documents(directory, chunk_size=60, overlap=12):
     documents = []
 
-    for file in Path(directory).glob("*.md"):
+    for file in sorted(directory.glob("*.md")):
         text = file.read_text()
 
         chunks = chunk_text(

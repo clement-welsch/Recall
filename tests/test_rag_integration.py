@@ -1,17 +1,15 @@
-from devassistant.rag import get_answer
 import pytest
+
+from devassistant.rag import get_answer
+
 
 @pytest.mark.lmstudio
 def test_rag_integration(tmp_path):
     python_file = tmp_path / "python.md"
-    python_file.write_text(
-        "Python is a high-level programming language."
-    )
+    python_file.write_text("Python is a high-level programming language.")
 
     rag_file = tmp_path / "rag.md"
-    rag_file.write_text(
-        "RAG combines document retrieval with language model generation."
-    )
+    rag_file.write_text("RAG combines document retrieval with language model generation.")
 
     question = "What is RAG?"
 

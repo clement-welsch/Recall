@@ -1,6 +1,6 @@
 import pytest
 
-from devassistant.search import search, aggregate_document_scores
+from devassistant.search import aggregate_document_scores, search
 
 
 def test_search(monkeypatch):
@@ -131,6 +131,7 @@ def test_search_keeps_document_metadata(monkeypatch):
         "source": "rag.md",
     }
 
+
 def test_search_filters_results_below_score_threshold(monkeypatch):
     documents = [
         {
@@ -180,6 +181,7 @@ def test_search_filters_results_below_score_threshold(monkeypatch):
     assert [result["chunk_score"] for result in results] == [1.0, 0.9]
     assert [result["source_score"] for result in results] == [1.0, 0.9]
 
+
 def test_aggregate_document_scores_uses_max_chunk_score():
     results = [
         (
@@ -211,6 +213,7 @@ def test_aggregate_document_scores_uses_max_chunk_score():
         (0.9, "rag.md"),
         (0.8, "python.md"),
     ]
+
 
 def test_search_top_k_limits_documents(monkeypatch):
     documents = [
@@ -254,10 +257,7 @@ def test_search_top_k_limits_documents(monkeypatch):
         top_k=2,
     )
 
-    sources = {
-        result["chunk"]["source"]
-        for result in results
-    }
+    sources = {result["chunk"]["source"] for result in results}
 
     assert sources == {
         "rag.md",
@@ -265,6 +265,7 @@ def test_search_top_k_limits_documents(monkeypatch):
     }
 
     assert len(results) == 3
+
 
 def test_search_rejects_negative_top_k():
     with pytest.raises(ValueError, match="top_k"):
@@ -313,11 +314,14 @@ def test_search_rejects_invalid_score_threshold(score_threshold):
 
 @pytest.mark.parametrize("score_threshold", [-1.0, 1.0])
 def test_search_accepts_score_threshold_boundaries(score_threshold):
-    assert search(
-        [],
-        "What is relevant?",
-        score_threshold=score_threshold,
-    ) == []
+    assert (
+        search(
+            [],
+            "What is relevant?",
+            score_threshold=score_threshold,
+        )
+        == []
+    )
 
 
 def test_aggregate_document_scores_breaks_ties_by_source():

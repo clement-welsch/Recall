@@ -1,5 +1,8 @@
-from devassistant.embeddings import embed, clear_embedding_cache
+from types import SimpleNamespace
+
 import pytest
+
+from devassistant.embeddings import clear_embedding_cache, embed
 
 texts = [
     "Le Nutri-Score évalue la qualité nutritionnelle des aliments.",
@@ -7,10 +10,12 @@ texts = [
     "Les pommes sont des fruits.",
 ]
 
+
 @pytest.mark.lmstudio
 def test_embedding_count():
     vectors = embed(texts)
     assert len(vectors) == len(texts)
+
 
 @pytest.mark.lmstudio
 def test_embedding_dimension():
@@ -19,12 +24,14 @@ def test_embedding_dimension():
     for vector in vectors:
         assert len(vector) == 768
 
+
 @pytest.mark.lmstudio
 def test_embedding_type():
     vectors = embed(texts)
 
     for vector in vectors:
         assert isinstance(vector, list)
+
 
 @pytest.mark.lmstudio
 def test_embedding_values():
@@ -33,9 +40,11 @@ def test_embedding_values():
         for value in vector:
             assert isinstance(value, float)
 
+
 def test_embedding_empty_input():
     with pytest.raises(ValueError):
         embed([])
+
 
 @pytest.mark.lmstudio
 def test_embedding_single_text():
@@ -43,9 +52,6 @@ def test_embedding_single_text():
 
     assert len(vectors) == 1
 
-###
-
-from types import SimpleNamespace
 
 @pytest.fixture
 def mock_lmstudio(monkeypatch):
@@ -54,20 +60,18 @@ def mock_lmstudio(monkeypatch):
         fake_create,
     )
 
+
 def fake_create(model, input):
     if not input:
         raise ValueError("No embedding data received")
 
-    return SimpleNamespace(
-        data=[
-            SimpleNamespace(embedding=[0.1] * 768)
-            for _ in input
-        ]
-    )
+    return SimpleNamespace(data=[SimpleNamespace(embedding=[0.1] * 768) for _ in input])
+
 
 def test_embedding_count_without_lmstudio(mock_lmstudio):
     vectors = embed(texts)
     assert len(vectors) == len(texts)
+
 
 def test_embedding_dimension_without_lmstudio(mock_lmstudio):
     vectors = embed(texts)
@@ -75,10 +79,12 @@ def test_embedding_dimension_without_lmstudio(mock_lmstudio):
     for vector in vectors:
         assert len(vector) == 768
 
+
 def test_embedding_type_without_lmstudio(mock_lmstudio):
     vectors = embed(texts)
     for vector in vectors:
         assert isinstance(vector, list)
+
 
 def test_embedding_values_without_lmstudio(mock_lmstudio):
     vectors = embed(texts)
@@ -86,13 +92,16 @@ def test_embedding_values_without_lmstudio(mock_lmstudio):
         for value in vector:
             assert isinstance(value, float)
 
+
 def test_embedding_empty_input_without_lmstudio(mock_lmstudio):
     with pytest.raises(ValueError):
         embed([])
 
+
 def test_embedding_single_text_without_lmstudio(mock_lmstudio):
     vectors = embed(["Le Nutri-Score évalue la qualité nutritionnelle."])
     assert len(vectors) == 1
+
 
 def test_embedding_cache_reuses_identical_texts(monkeypatch):
     clear_embedding_cache()
@@ -102,10 +111,7 @@ def test_embedding_cache_reuses_identical_texts(monkeypatch):
         calls.append(input)
 
         return SimpleNamespace(
-            data=[
-                SimpleNamespace(embedding=[float(len(text))] * 768)
-                for text in input
-            ]
+            data=[SimpleNamespace(embedding=[float(len(text))] * 768) for text in input]
         )
 
     monkeypatch.setattr(
@@ -124,6 +130,7 @@ def test_embedding_cache_reuses_identical_texts(monkeypatch):
     assert vectors[0] == vectors[2]
     assert sum(len(call) for call in calls) == 2
 
+
 def test_embedding_cache_reuses_previous_results(monkeypatch):
     clear_embedding_cache()
     calls = []
@@ -132,10 +139,7 @@ def test_embedding_cache_reuses_previous_results(monkeypatch):
         calls.append(input)
 
         return SimpleNamespace(
-            data=[
-                SimpleNamespace(embedding=[float(len(text))] * 768)
-                for text in input
-            ]
+            data=[SimpleNamespace(embedding=[float(len(text))] * 768) for text in input]
         )
 
     monkeypatch.setattr(
@@ -149,6 +153,7 @@ def test_embedding_cache_reuses_previous_results(monkeypatch):
     assert first == second
     assert len(calls) == 1
 
+
 def test_embedding_cache_batches_missing_texts(monkeypatch):
     clear_embedding_cache()
     calls = []
@@ -157,10 +162,7 @@ def test_embedding_cache_batches_missing_texts(monkeypatch):
         calls.append(input)
 
         return SimpleNamespace(
-            data=[
-                SimpleNamespace(embedding=[float(len(text))] * 768)
-                for text in input
-            ]
+            data=[SimpleNamespace(embedding=[float(len(text))] * 768) for text in input]
         )
 
     monkeypatch.setattr(
@@ -172,6 +174,7 @@ def test_embedding_cache_batches_missing_texts(monkeypatch):
     embed(["B", "C"])
 
     assert calls == [["A", "B"], ["C"]]
+
 
 def test_embedding_cache_evicts_least_recently_used(monkeypatch):
     clear_embedding_cache()
@@ -186,10 +189,7 @@ def test_embedding_cache_evicts_least_recently_used(monkeypatch):
         calls.append(input)
 
         return SimpleNamespace(
-            data=[
-                SimpleNamespace(embedding=[float(len(text))] * 768)
-                for text in input
-            ]
+            data=[SimpleNamespace(embedding=[float(len(text))] * 768) for text in input]
         )
 
     monkeypatch.setattr(

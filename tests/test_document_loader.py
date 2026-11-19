@@ -10,7 +10,7 @@ def test_load_documents(tmp_path):
 
     documents = load_documents(tmp_path)
 
-    assert sorted(documents, key=lambda doc: doc["source"]) == [
+    assert documents == [
         {
             "content": "Python content",
             "source": "python.md",
@@ -56,9 +56,7 @@ def test_load_documents_empty_markdown_file(tmp_path):
 
 def test_load_documents_with_chunking(tmp_path):
     document = tmp_path / "document.md"
-    document.write_text(
-        "one two three four five six"
-    )
+    document.write_text("one two three four five six")
 
     documents = load_documents(
         tmp_path,
@@ -80,9 +78,7 @@ def test_load_documents_with_chunking(tmp_path):
 
 def test_load_documents_default_chunking(tmp_path):
     document = tmp_path / "document.md"
-    document.write_text(
-        "one two three"
-    )
+    document.write_text("one two three")
 
     documents = load_documents(tmp_path)
 
@@ -96,9 +92,7 @@ def test_load_documents_default_chunking(tmp_path):
 
 def test_load_documents_keeps_source(tmp_path):
     document = tmp_path / "rag.md"
-    document.write_text(
-        "RAG retrieves relevant information."
-    )
+    document.write_text("RAG retrieves relevant information.")
 
     documents = load_documents(tmp_path)
 

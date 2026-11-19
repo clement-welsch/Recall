@@ -15,9 +15,7 @@ def search(
         raise ValueError("top_k must be greater than or equal to 0")
 
     if not isfinite(score_threshold) or not -1.0 <= score_threshold <= 1.0:
-        raise ValueError(
-            "score_threshold must be a finite value between -1.0 and 1.0"
-        )
+        raise ValueError("score_threshold must be a finite value between -1.0 and 1.0")
 
     if top_k == 0 or not documents:
         return []
@@ -30,7 +28,7 @@ def search(
 
     scored_chunks = []
 
-    for vector, document in zip(vectors_docs, documents):
+    for vector, document in zip(vectors_docs, documents, strict=False):
         chunk_score = cosine_similarity(vector, question_vector)
 
         if chunk_score >= score_threshold:
@@ -43,15 +41,9 @@ def search(
 
     document_scores = aggregate_document_scores(scored_chunks)
 
-    source_scores = {
-        source: score
-        for score, source in document_scores
-    }
+    source_scores = {source: score for score, source in document_scores}
 
-    selected_sources = {
-        source
-        for _, source in document_scores[:top_k]
-    }
+    selected_sources = {source for _, source in document_scores[:top_k]}
 
     return [
         {
@@ -80,9 +72,6 @@ def aggregate_document_scores(results):
             )
 
     return sorted(
-        [
-            (score, source)
-            for source, score in document_scores.items()
-        ],
+        [(score, source) for source, score in document_scores.items()],
         key=lambda item: (-item[0], item[1]),
     )
