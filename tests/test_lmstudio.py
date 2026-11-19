@@ -2,9 +2,7 @@ from devassistant.lmstudio_client import ask
 
 
 def test_ask():
-    response = ask(
-        "Explique en une phrase ce qu'est le Nutri-Score."
-    )
+    response = ask("Explique en une phrase ce qu'est le Nutri-Score.")
 
     assert isinstance(response, str)
     assert response

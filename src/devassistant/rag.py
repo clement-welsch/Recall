@@ -1,10 +1,10 @@
 from math import isfinite
 
 from devassistant.document_loader import load_documents
-from devassistant.models import KnowledgeDomain
-from devassistant.search import search
 from devassistant.lmstudio_client import ask
+from devassistant.models import KnowledgeDomain
 from devassistant.prompt import build_prompt
+from devassistant.search import search
 
 
 def build_context(documents):
@@ -15,10 +15,7 @@ def build_context(documents):
         source = chunk["source"]
         domain = f"Domain: {result['domain']}\n" if "domain" in result else ""
 
-        contexts.append(
-            f"{domain}Source: {source}\n"
-            f"{chunk['content']}"
-        )
+        contexts.append(f"{domain}Source: {source}\n{chunk['content']}")
 
     return "\n".join(contexts)
 
@@ -110,9 +107,7 @@ def get_answer_for_domains(
     if top_k < 0:
         raise ValueError("top_k must be greater than or equal to 0")
     if not isfinite(score_threshold) or not -1.0 <= score_threshold <= 1.0:
-        raise ValueError(
-            "score_threshold must be a finite value between -1.0 and 1.0"
-        )
+        raise ValueError("score_threshold must be a finite value between -1.0 and 1.0")
 
     domain_results = []
     domain_names = {}
@@ -168,8 +163,7 @@ def get_answer_for_domains(
     best_docs = [
         result
         for result in domain_results
-        if (result["domain_id"], result["chunk"]["source"])
-        in selected_sources
+        if (result["domain_id"], result["chunk"]["source"]) in selected_sources
     ]
     best_docs.sort(
         key=lambda result: (

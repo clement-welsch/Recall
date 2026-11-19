@@ -3,9 +3,7 @@ from devassistant.rag import get_answer
 
 def test_rag_integration(tmp_path):
     python_file = tmp_path / "python.md"
-    python_file.write_text(
-        "Python is a high-level programming language."
-    )
+    python_file.write_text("Python is a high-level programming language.")
 
     rag_file = tmp_path / "rag.md"
     rag_file.write_text(

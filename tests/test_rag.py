@@ -12,9 +12,7 @@ from devassistant.rag import (
 @pytest.fixture
 def documents(tmp_path):
     python_file = tmp_path / "python.md"
-    python_file.write_text(
-        "Python is a high-level programming language."
-    )
+    python_file.write_text("Python is a high-level programming language.")
 
     rag_file = tmp_path / "rag.md"
     rag_file.write_text(
@@ -48,9 +46,7 @@ def fake_search():
                 "chunk_score": 0.7,
                 "source_score": 0.7,
                 "chunk": {
-                    "content": (
-                        "Python is a high-level programming language."
-                    ),
+                    "content": ("Python is a high-level programming language."),
                     "source": "python.md",
                 },
             },
@@ -74,9 +70,7 @@ def test_retrieve_documents_loads_and_searches_domain_documents(
     monkeypatch,
     tmp_path,
 ):
-    loaded_documents = [
-        {"content": "Python documentation", "source": "python.md"}
-    ]
+    loaded_documents = [{"content": "Python documentation", "source": "python.md"}]
     retrieved_documents = [{"chunk": loaded_documents[0]}]
     captured = {}
 
@@ -225,9 +219,7 @@ def test_get_answer(monkeypatch, documents, fake_ask):
                 "chunk_score": 0.7,
                 "source_score": 0.7,
                 "chunk": {
-                    "content": (
-                        "Python is a high-level programming language."
-                    ),
+                    "content": ("Python is a high-level programming language."),
                     "source": "python.md",
                 },
             },

@@ -51,7 +51,7 @@ def test_knowledge_domain_rejects_invalid_directory(invalid_directory):
 
 
 def test_knowledge_domain_rejects_non_string_description():
-    with pytest.raises(ValueError, match="Description must be a string"):
+    with pytest.raises(TypeError, match="Description must be a string"):
         KnowledgeDomain(
             name="Python",
             directory="docs/python",
@@ -60,7 +60,7 @@ def test_knowledge_domain_rejects_non_string_description():
 
 
 def test_knowledge_domain_rejects_non_uuid_id():
-    with pytest.raises(ValueError, match="ID must be a UUID"):
+    with pytest.raises(TypeError, match="ID must be a UUID"):
         KnowledgeDomain(
             name="Python",
             directory="docs/python",

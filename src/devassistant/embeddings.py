@@ -8,7 +8,6 @@ from .config import (
     LMSTUDIO_EMBEDDING_MODEL,
 )
 
-
 client = OpenAI(
     base_url=LMSTUDIO_BASE_URL,
     api_key=LMSTUDIO_API_KEY,

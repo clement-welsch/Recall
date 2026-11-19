@@ -1,4 +1,3 @@
-
 def chunk_text(text, size=60, overlap=12):
     """Split text into fixed-size word chunks with overlapping content."""
 
@@ -16,7 +15,7 @@ def chunk_text(text, size=60, overlap=12):
     start = 0
 
     while start < len(words):
-        chunks.append(" ".join(words[start:start + size]))
+        chunks.append(" ".join(words[start : start + size]))
 
         if start + size >= len(words):
             break
